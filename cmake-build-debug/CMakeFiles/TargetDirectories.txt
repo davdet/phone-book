@@ -1,0 +1,3 @@
+/home/d3/Dropbox/docs/TNV/191030_progetto/rubrica-telefonica/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/d3/Dropbox/docs/TNV/191030_progetto/rubrica-telefonica/cmake-build-debug/CMakeFiles/rubrica_telefonica.dir
+/home/d3/Dropbox/docs/TNV/191030_progetto/rubrica-telefonica/cmake-build-debug/CMakeFiles/edit_cache.dir

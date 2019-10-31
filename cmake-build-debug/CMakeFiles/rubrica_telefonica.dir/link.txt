@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/rubrica_telefonica.dir/main.c.o  -o rubrica_telefonica 
