@@ -66,32 +66,37 @@ typedef struct {
     char message[MESSAGE];
 } Response;
 
-void inserisciContatto(Contatto *nuovo);
-Response validator(char str[], Controllo ctrl);
+void newContact(Contatto *new);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
+Response validator(char str[], Controllo ctrl);
 void toLowercase(char str[]);
 void getInput(char *inStr, int length, Controllo ctrl, char label[]);
 TipologiaContatto getGroup();
+void printContact(Contatto *contact);
 
 int main() {
 
     Contatto nuovoContatto;
 
-    inserisciContatto(&nuovoContatto);
-
-    //printf("%s\n%s\n%s\n%s\n%d\n", nuovoContatto.nome, nuovoContatto.cognome, nuovoContatto.telefono, nuovoContatto.email, nuovoContatto.gruppo);
+    newContact(&nuovoContatto);
+    printContact(&nuovoContatto);
 
     return 0;
 }
 
-void inserisciContatto(Contatto *nuovo) {
+/**
+ * Prende in ingresso un nuovo contatto e acquisisce in input tutti i campi.
+ *
+ * @param nuovo Puntatore al nuovo contatto.
+ */
+void newContact(Contatto *new) {
 
-    getInput(nuovo->nome, LENGTH + 1, NOME, "Nome");
-    getInput(nuovo->cognome, LENGTH + 1, NOME, "Cognome");
-    getInput(nuovo->telefono, LENGTH + 1, TELEFONO, "Numero di telefono");
-    getInput(nuovo->email, LENGTH + 1, EMAIL, "Indirizzo e-mail");
-    nuovo->gruppo = getGroup();
+    getInput(new->nome, LENGTH + 1, NOME, "Nome");
+    getInput(new->cognome, LENGTH + 1, NOME, "Cognome");
+    getInput(new->telefono, LENGTH + 1, TELEFONO, "Numero di telefono");
+    getInput(new->email, LENGTH + 1, EMAIL, "Indirizzo e-mail");
+    new->gruppo = getGroup();
 
 }
 
@@ -146,7 +151,7 @@ void ignoreInputUntil(char endCh) {
  *
  * @param str Stringa da validare.
  * @param ctrl Tipo di validazione.
- * @return 0 se la stringa è valida, altrimenti un codice di errore.
+ * @return 0 e il messaggio "OK" se la stringa è valida, altrimenti un codice di errore e il relativo messaggio.
  */
 Response validator(char str[], Controllo ctrl) {
     Response res;
@@ -304,6 +309,11 @@ void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
     } while(check.code != 0);
 }
 
+/**
+ * Acquisisce l'input relativo al gruppo di contatti.
+ *
+ * @return Gruppo di contatti.
+ */
 TipologiaContatto getGroup() {
     TipologiaContatto gruppo;
 
@@ -325,4 +335,34 @@ TipologiaContatto getGroup() {
     } while(gruppo < LAVORO || gruppo > ALTRO);
 
     return gruppo;
+}
+
+/**
+ * Prende in ingresso un contatto e lo stampa a video.
+ *
+ * @param contact Puntatore al contatto.
+ */
+void printContact(Contatto *contact) {
+    printf("Nome: %s\n"
+           "Cognome: %s\n"
+           "Telefono: %s\n"
+           "E-mail: %s\n"
+           "Gruppo: ",
+           contact->nome, contact->cognome, contact->telefono,
+           contact->email);
+
+    switch (contact->gruppo) {
+        case LAVORO:
+            printf("Lavoro\n");
+            break;
+        case FAMIGLIA:
+            printf("Famiglia\n");
+            break;
+        case AMICI:
+            printf("Amici\n");
+            break;
+        case ALTRO:
+            printf("Altro\n");
+            break;
+    }
 }
