@@ -92,7 +92,7 @@ void modifyContact(Contatto *cont);
 int main() {
 
     Contatto nuovoContatto;
-    Contatto nuovoContatto2 = {"alberto", "bressa", "3221134", "reverendjack@hotmail.com", AMICI};
+    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "reverendjack@hotmail.com", AMICI};
 
     newContact(&nuovoContatto);
     printContact(&nuovoContatto);
