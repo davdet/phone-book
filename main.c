@@ -49,6 +49,14 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 
 #define LENGTH 30
 #define MESSAGE 100
+#define MODIF_MIN 1
+#define MODIF_MAX 5
+
+#define NAME_LABEL "Nome"
+#define SRNAME_LABEL "Cognome"
+#define TEL_LABEL "Telefono"
+#define EMAIL_LABEL "E-mail"
+#define GROUP_LABEL "\nGruppo:\n1) Lavoro\n2) Famiglia\n3) Amici\n4) Altro\n"
 
 typedef enum {LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
 typedef enum {NOME, TELEFONO, EMAIL} Controllo;
@@ -73,13 +81,17 @@ Response validator(char str[], Controllo ctrl);
 void toLowercase(char str[]);
 void getInput(char *inStr, int length, Controllo ctrl, char label[]);
 TipologiaContatto getGroup();
-void printContact(Contatto *contact);
+void printContact(Contatto *cont);
+_Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
+void modifyContact(Contatto *cont);
 
 int main() {
 
     Contatto nuovoContatto;
 
     newContact(&nuovoContatto);
+    printContact(&nuovoContatto);
+    modifyContact(&nuovoContatto);
     printContact(&nuovoContatto);
 
     return 0;
@@ -92,10 +104,10 @@ int main() {
  */
 void newContact(Contatto *new) {
 
-    getInput(new->nome, LENGTH + 1, NOME, "Nome");
-    getInput(new->cognome, LENGTH + 1, NOME, "Cognome");
-    getInput(new->telefono, LENGTH + 1, TELEFONO, "Numero di telefono");
-    getInput(new->email, LENGTH + 1, EMAIL, "Indirizzo e-mail");
+    getInput(new->nome, LENGTH + 1, NOME, NAME_LABEL);
+    getInput(new->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
+    getInput(new->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
+    getInput(new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
     new->gruppo = getGroup();
 
 }
@@ -316,42 +328,56 @@ void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
  */
 TipologiaContatto getGroup() {
     TipologiaContatto gruppo;
+    _Bool isOk;
 
     do {
-        printf("\nGruppo:"
-               "\n1) Lavoro"
-               "\n2) Famiglia"
-               "\n3) Amici"
-               "\n4) Altro\n");
+        printf(GROUP_LABEL);
         scanf("%d", &gruppo);
         gruppo--;
 
-        if (gruppo < LAVORO || gruppo > ALTRO) {
-            printf("Errore: scelta non valida");
-            getchar();
-            ignoreInputUntil('\n');
-        }
-
-    } while(gruppo < LAVORO || gruppo > ALTRO);
+        isOk = checkRange(gruppo, LAVORO, ALTRO, "Errore, scelta non valida.");
+    } while(!isOk);
 
     return gruppo;
 }
 
 /**
+ * Controlla se un valore è compreso all'interno di un certo intervallo. Se lo è restituisce true, altrimenti
+ * restituisce false e stampa un messaggio di errore.
+ *
+ * @param toCheck Valore da controllare.
+ * @param min Minimo valore dell'intervallo.
+ * @param max Massimo valore dell'intervallo.
+ * @param msg Messaggio da stampare nel caso in cui il valore non sia compreso nell'intervallo.
+ * @return false se non è compreso, true se è compreso.
+ */
+_Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]) {
+    if (toCheck < min || toCheck > max) {
+        printf("%s", msg);
+        getchar();
+        ignoreInputUntil('\n');
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Prende in ingresso un contatto e lo stampa a video.
  *
- * @param contact Puntatore al contatto.
+ * @param contact Puntatore al contatto da stampare a video.
  */
-void printContact(Contatto *contact) {
+void printContact(Contatto *cont) {
     printf("Nome: %s\n"
            "Cognome: %s\n"
            "Telefono: %s\n"
            "E-mail: %s\n"
            "Gruppo: ",
-           contact->nome, contact->cognome, contact->telefono,
-           contact->email);
+           cont->nome, cont->cognome, cont->telefono,
+           cont->email);
 
-    switch (contact->gruppo) {
+    switch (cont->gruppo) {
         case LAVORO:
             printf("Lavoro\n");
             break;
@@ -364,5 +390,48 @@ void printContact(Contatto *contact) {
         case ALTRO:
             printf("Altro\n");
             break;
+    }
+}
+
+/**
+ * Prende in ingresso un contatto e ne modifica un campo dopo aver chiesto all'utente quale campo vuole modificare.
+ *
+ * @param cont Puntatore al contatto da modificare.
+ */
+void modifyContact(Contatto *cont) {
+    int choice;
+    _Bool isOk;
+
+    do {
+        printContact(cont);
+
+        printf("Quale campo vuoi modificare?\n"
+               "1) Nome\n"
+               "2) Cognome\n"
+               "3) Telefono\n"
+               "4) E-mail\n"
+               "5) Gruppo\n");
+        scanf("%d", &choice);
+
+        isOk = checkRange(choice, MODIF_MIN, MODIF_MAX, "Errore: scelta non valida.");
+    } while(!isOk);
+
+    switch (choice) {
+        case 1:
+            getInput(cont->nome, LENGTH + 1, NOME, NAME_LABEL);
+            break;
+        case 2:
+            getInput(cont->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
+            break;
+        case 3:
+            getInput(cont->telefono, LENGTH + 1, NOME, TEL_LABEL);
+            break;
+        case 4:
+            getInput(cont->email, LENGTH + 1, NOME, EMAIL_LABEL);
+            break;
+        case 5:
+            cont->gruppo = getGroup();
+            break;
+
     }
 }
