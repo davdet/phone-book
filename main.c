@@ -48,6 +48,7 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #include <string.h>
 
 #define LENGTH 30 // Lunghezza massima dei campi nome e cognome.
+#define TEL_LENGTH 15 // Lunghezza massima per il numero di telefono.
 #define MESSAGE 100 // Lunghezza massima dei messaggi di errore.
 #define MODIF_MIN 1 // Valore minimo per la scelta durante la modifica del contatto.
 #define MODIF_MAX 5 // Valore massimo per la scelta durante la modifica del contatto.
@@ -82,7 +83,7 @@ void ignoreInputUntil(char endCh);
 Response validator(char str[], Controllo ctrl);
 void toLowercase(char str[]);
 void getInput(char *inStr, int length, Controllo ctrl, char label[]);
-TipologiaContatto getGroup();
+TipologiaContatto getGroup(char label[]);
 void printContact(Contatto *cont);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
 void modifyContact(Contatto *cont);
@@ -109,9 +110,9 @@ void newContact(Contatto *new) {
 
     getInput(new->nome, LENGTH + 1, NOME, NAME_LABEL);
     getInput(new->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
-    getInput(new->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
+    getInput(new->telefono, TEL_LENGTH + 1, TELEFONO, TEL_LABEL);
     getInput(new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
-    new->gruppo = getGroup();
+    new->gruppo = getGroup(GROUP_LABEL);
 
 }
 
@@ -313,7 +314,7 @@ void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
     Response check;
 
     do {
-        printf("\n%s: ", label);
+        printf("%s: ", label);
         readLine(inStr, length);
         check = validator(inStr, ctrl);
 
@@ -329,13 +330,12 @@ void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
  *
  * @return Gruppo di contatti.
  */
-TipologiaContatto getGroup() {
+TipologiaContatto getGroup(char label[]) {
     TipologiaContatto gruppo;
     _Bool isOk;
 
     do {
-        printf(GROUP_LABEL);
-        //choice = getchar();
+        printf("%s", label);
         scanf("%d", &gruppo);
         ignoreInputUntil('\n');
         gruppo--;
@@ -434,7 +434,7 @@ void modifyContact(Contatto *cont) {
             getInput(cont->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
             break;
         case 5:
-            cont->gruppo = getGroup();
+            cont->gruppo = getGroup(GROUP_LABEL);
             break;
     }
 }
