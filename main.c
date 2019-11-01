@@ -47,10 +47,12 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #include <stdbool.h>
 #include <string.h>
 
-#define LENGTH 30
-#define MESSAGE 100
-#define MODIF_MIN 1
-#define MODIF_MAX 5
+#define LENGTH 30 // Lunghezza massima dei campi nome e cognome.
+#define MESSAGE 100 // Lunghezza massima dei messaggi di errore.
+#define MODIF_MIN '1' // Valore minimo per la scelta durante la modifica del contatto.
+#define MODIF_MAX '5' // Valore massimo per la scelta durante la modifica del contatto.
+#define GROUP_MIN '1' // Valore minimo per la scelta del gruppo.
+#define GROUP_MAX '4' // Valore massimo per la scelta del gruppo.
 
 #define NAME_LABEL "Nome"
 #define SRNAME_LABEL "Cognome"
@@ -59,7 +61,7 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #define GROUP_LABEL "\nGruppo:\n1) Lavoro\n2) Famiglia\n3) Amici\n4) Altro\n"
 
 typedef enum {LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
-typedef enum {NOME, TELEFONO, EMAIL} Controllo;
+typedef enum {NOME, TELEFONO, EMAIL} Controllo; // Enum utilizzata dalla funzione validator
 
 typedef struct {
     char nome[LENGTH + 1];
@@ -69,6 +71,8 @@ typedef struct {
     TipologiaContatto gruppo;
 } Contatto;
 
+/* Struttura per ritornare un messaggio di errore e un codice ad esso associato. Il codice non si è poi rivelato
+ * utile ai fini dell'esecuzione del programma. */
 typedef struct {
     int code;
     char message[MESSAGE];
@@ -88,6 +92,7 @@ void modifyContact(Contatto *cont);
 int main() {
 
     Contatto nuovoContatto;
+    Contatto nuovoContatto2 = {"alberto", "bressa", "3221134", "reverendjack@hotmail.com", AMICI};
 
     newContact(&nuovoContatto);
     printContact(&nuovoContatto);
@@ -328,15 +333,31 @@ void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
  */
 TipologiaContatto getGroup() {
     TipologiaContatto gruppo;
+    char choice;
     _Bool isOk;
 
     do {
         printf(GROUP_LABEL);
-        scanf("%d", &gruppo);
-        gruppo--;
+        choice = getchar();
+        ignoreInputUntil('\n');
 
-        isOk = checkRange(gruppo, LAVORO, ALTRO, "Errore, scelta non valida.");
+        isOk = checkRange(choice, GROUP_MIN, GROUP_MAX, "Errore, scelta non valida.");
     } while(!isOk);
+
+    switch (choice) {
+        case '1':
+            gruppo = LAVORO;
+            break;
+        case '2':
+            gruppo = FAMIGLIA;
+            break;
+        case '3':
+            gruppo = AMICI;
+            break;
+        case '4':
+            gruppo = ALTRO;
+            break;
+    }
 
     return gruppo;
 }
@@ -354,7 +375,6 @@ TipologiaContatto getGroup() {
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]) {
     if (toCheck < min || toCheck > max) {
         printf("%s", msg);
-        getchar();
         ignoreInputUntil('\n');
 
         return false;
@@ -399,7 +419,7 @@ void printContact(Contatto *cont) {
  * @param cont Puntatore al contatto da modificare.
  */
 void modifyContact(Contatto *cont) {
-    int choice;
+    char choice;
     _Bool isOk;
 
     do {
@@ -411,27 +431,27 @@ void modifyContact(Contatto *cont) {
                "3) Telefono\n"
                "4) E-mail\n"
                "5) Gruppo\n");
-        scanf("%d", &choice);
+        choice = getchar();
+        ignoreInputUntil('\n');
 
         isOk = checkRange(choice, MODIF_MIN, MODIF_MAX, "Errore: scelta non valida.");
     } while(!isOk);
 
     switch (choice) {
-        case 1:
+        case '1':
             getInput(cont->nome, LENGTH + 1, NOME, NAME_LABEL);
             break;
-        case 2:
+        case '2':
             getInput(cont->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
             break;
-        case 3:
-            getInput(cont->telefono, LENGTH + 1, NOME, TEL_LABEL);
+        case '3':
+            getInput(cont->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
             break;
-        case 4:
-            getInput(cont->email, LENGTH + 1, NOME, EMAIL_LABEL);
+        case '4':
+            getInput(cont->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
             break;
-        case 5:
+        case '5':
             cont->gruppo = getGroup();
             break;
-
     }
 }
