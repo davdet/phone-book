@@ -144,7 +144,7 @@ void readLine(char str[], int length) {
 void ignoreInputUntil(char endCh) {
     char ch;
 
-    do{
+    do {
         ch=getchar();
     } while(ch != endCh);
 }
@@ -170,7 +170,7 @@ int validator(char str[], int ctrl) {
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del nome o del cognome sono presenti caratteri diversi dalle lettere
                  * dell'alfabeto latino, viene restituito il codice di errore -2. */
-                if(strLocal[i] < 'a' || strLocal[i] > 'z')
+                if (strLocal[i] < 'a' || strLocal[i] > 'z')
                     return -2;
                 i++;
             }
@@ -180,16 +180,16 @@ int validator(char str[], int ctrl) {
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del numero di telefono sono presenti caratteri diversi dalle cifre,
                  * viene restituito il codice di errore -3. */
-                if(strLocal[i] < '0' || strLocal[i] > '9')
+                if (strLocal[i] < '0' || strLocal[i] > '9')
                     return -3;
                 i++;
             }
             break;
 
         case EMAIL:
-            while(strLocal[i] != '@' || i == strlen(strLocal)) // Cicla fino a trovare la posizione del carattere '@'.
+            while(strLocal[i] != '@' && i != j) // Cicla fino a trovare la posizione del carattere '@' o, nel caso non fosse presente, fino alla fine della stringa.
                 i++;
-            while(strLocal[j] != '.' || i == 0) // Cicla fino a trovare la posizione del carattere '.'.
+            while(strLocal[j] != '.' && j != -1) // Cicla fino a trovare la posizione del carattere '.' o, nel caso non fosse presente, fino all'inizio della stringa.
                 j--;
 
             /* Se il carattere '.' si trova prima del carattere '@' viene restituito il codice di errore -4. */
@@ -209,19 +209,19 @@ int validator(char str[], int ctrl) {
             /* Controlla che non siano presenti caratteri invalidi nel nome utente. Se presenti restituisce il
              * codice di errore -7. */
             for(k = 0; k < i; k++)
-                if((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
+                if ((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
                     return -7;
 
             /* Controlla che non siano presenti caratteri invalidi nel dominio di secondo livello. Se presenti
              * restituisce il codice di errore -8. */
             for(k = i + 1; k < j; k++)
-                if((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
+                if ((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
                     return -8;
 
             /* Controlla che non siano presenti caratteri invalidi nel dominio di primo livello. Se presenti
              * restituisce il codice di errore -9. */
             for(k = j + 1; k < strlen(strLocal); k++)
-                if(strLocal[k] < 'a' || strLocal[k] > 'z')
+                if (strLocal[k] < 'a' || strLocal[k] > 'z')
                     return -9;
             break;
     }
