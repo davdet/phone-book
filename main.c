@@ -49,10 +49,8 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 
 #define LENGTH 30 // Lunghezza massima dei campi nome e cognome.
 #define MESSAGE 100 // Lunghezza massima dei messaggi di errore.
-#define MODIF_MIN '1' // Valore minimo per la scelta durante la modifica del contatto.
-#define MODIF_MAX '5' // Valore massimo per la scelta durante la modifica del contatto.
-#define GROUP_MIN '1' // Valore minimo per la scelta del gruppo.
-#define GROUP_MAX '4' // Valore massimo per la scelta del gruppo.
+#define MODIF_MIN 1 // Valore minimo per la scelta durante la modifica del contatto.
+#define MODIF_MAX 5 // Valore massimo per la scelta durante la modifica del contatto.
 
 #define NAME_LABEL "Nome"
 #define SRNAME_LABEL "Cognome"
@@ -333,32 +331,17 @@ void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
  */
 TipologiaContatto getGroup() {
     TipologiaContatto gruppo;
-    char choice;
     _Bool isOk;
 
     do {
         printf(GROUP_LABEL);
-        choice = getchar();
+        //choice = getchar();
+        scanf("%d", &gruppo);
         ignoreInputUntil('\n');
+        gruppo--;
 
-        isOk = checkRange(choice, GROUP_MIN, GROUP_MAX, "Errore, scelta non valida.");
+        isOk = checkRange(gruppo, LAVORO, ALTRO, "Errore, scelta non valida.");
     } while(!isOk);
-
-    switch (choice) {
-        case '1':
-            gruppo = LAVORO;
-            break;
-        case '2':
-            gruppo = FAMIGLIA;
-            break;
-        case '3':
-            gruppo = AMICI;
-            break;
-        case '4':
-            gruppo = ALTRO;
-            break;
-    }
-
     return gruppo;
 }
 
@@ -419,7 +402,7 @@ void printContact(Contatto *cont) {
  * @param cont Puntatore al contatto da modificare.
  */
 void modifyContact(Contatto *cont) {
-    char choice;
+    int choice;
     _Bool isOk;
 
     do {
@@ -431,26 +414,26 @@ void modifyContact(Contatto *cont) {
                "3) Telefono\n"
                "4) E-mail\n"
                "5) Gruppo\n");
-        choice = getchar();
+        scanf("%d", &choice);
         ignoreInputUntil('\n');
 
         isOk = checkRange(choice, MODIF_MIN, MODIF_MAX, "Errore: scelta non valida.");
     } while(!isOk);
 
     switch (choice) {
-        case '1':
+        case 1:
             getInput(cont->nome, LENGTH + 1, NOME, NAME_LABEL);
             break;
-        case '2':
+        case 2:
             getInput(cont->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
             break;
-        case '3':
+        case 3:
             getInput(cont->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
             break;
-        case '4':
+        case 4:
             getInput(cont->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
             break;
-        case '5':
+        case 5:
             cont->gruppo = getGroup();
             break;
     }

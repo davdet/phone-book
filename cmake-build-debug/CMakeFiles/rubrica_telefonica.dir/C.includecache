@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/d3/Dropbox/docs/TNV/191030_progetto/rubrica-telefonica/main.c
+/home/d3/Dropbox/docs/TNV/191030_progetto/rubrica_telefonica/main.c
 stdio.h
 -
 stdlib.h
