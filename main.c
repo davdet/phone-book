@@ -48,9 +48,10 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #include <string.h>
 
 #define LENGTH 30
+#define MESSAGE 100
 
 typedef enum {LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
-typedef enum {NOME, TELEFONO, EMAIL};
+typedef enum {NOME, TELEFONO, EMAIL} Controllo;
 
 typedef struct {
     char nome[LENGTH + 1];
@@ -60,11 +61,18 @@ typedef struct {
     TipologiaContatto gruppo;
 } Contatto;
 
+typedef struct {
+    int code;
+    char message[MESSAGE];
+} Response;
+
 void inserisciContatto(Contatto *nuovo);
-int validator(char str[], int ctrl);
+Response validator(char str[], Controllo ctrl);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
 void toLowercase(char str[]);
+void getInput(char *inStr, int length, Controllo ctrl, char label[]);
+TipologiaContatto getGroup();
 
 int main() {
 
@@ -72,41 +80,25 @@ int main() {
 
     inserisciContatto(&nuovoContatto);
 
+    //printf("%s\n%s\n%s\n%s\n%d\n", nuovoContatto.nome, nuovoContatto.cognome, nuovoContatto.telefono, nuovoContatto.email, nuovoContatto.gruppo);
+
     return 0;
 }
 
 void inserisciContatto(Contatto *nuovo) {
 
-    printf("\nNome: ");
-    readLine(nuovo->nome, LENGTH + 1);
-    printf("%s", nuovo->nome);
-    printf("\n%d", validator(nuovo->nome, NOME));
-
-    printf("\nCognome: ");
-    readLine(nuovo->cognome, LENGTH + 1);
-    printf("%s", nuovo->cognome);
-    printf("\n%d", validator(nuovo->cognome, NOME));
-
-    printf("\nTelefono: ");
-    readLine(nuovo->telefono, LENGTH + 1);
-    printf("%s", nuovo->telefono);
-    printf("\n%d", validator(nuovo->telefono, TELEFONO));
-
-    printf("\nE-mail: ");
-    readLine(nuovo->email, LENGTH + 1);
-    printf("%s", nuovo->email);
-    printf("\n%d", validator(nuovo->email, EMAIL));
-
-    printf("\nGruppo: ");
-    scanf("%d", &nuovo->gruppo);
-    printf("%d", nuovo->gruppo);
+    getInput(nuovo->nome, LENGTH + 1, NOME, "Nome");
+    getInput(nuovo->cognome, LENGTH + 1, NOME, "Cognome");
+    getInput(nuovo->telefono, LENGTH + 1, TELEFONO, "Numero di telefono");
+    getInput(nuovo->email, LENGTH + 1, EMAIL, "Indirizzo e-mail");
+    nuovo->gruppo = getGroup();
 
 }
 
 /**
- * La funzione popola una stringa di carattere inserendo il terminatore alla fine di essa quando viene premuto il
- * carattere '\n' o quando si raggiunge la sua fine. Vengono effettuati controlli sulla lunghezza della stringa per
- * evitare di riempire il buffer con input indesiderati.
+ * Popola una stringa di caratteri inserendo il terminatore alla fine di essa quando viene premuto il carattere '\n'
+ * o quando si raggiunge la sua fine. Vengono effettuati controlli sulla lunghezza della stringa per evitare di
+ * riempire il buffer con input indesiderati.
  *
  * @param str Stringa da popolare.
  * @param length Lunghezza della stringa.
@@ -149,9 +141,17 @@ void ignoreInputUntil(char endCh) {
     } while(ch != endCh);
 }
 
-int validator(char str[], int ctrl) {
+/**
+ * Riceve in ingresso la stringa da validare ed un intero che indica il tipo di validazione.
+ *
+ * @param str Stringa da validare.
+ * @param ctrl Tipo di validazione.
+ * @return 0 se la stringa è valida, altrimenti un codice di errore.
+ */
+Response validator(char str[], Controllo ctrl) {
+    Response res;
     int i, j, k;
-    char strLocal[strlen(str)]; // Stringa locale dove verrà copiata la stringa ricevuta come parametro per essere elaborata dai controlli.
+    char strLocal[strlen(str) + 1]; // Stringa locale dove verrà copiata la stringa ricevuta come parametro per essere elaborata dai controlli.
 
     strcpy(strLocal, str); // Copia della stringa ricevuta come parametro.
     toLowercase(strLocal); // strLocal viene convertita il lowercase per facilitare i controlli
@@ -161,8 +161,11 @@ int validator(char str[], int ctrl) {
 
     /* Se la stringa inizia con '\n' o ' ', viene restituito il codice di errore -1: il campo non può essere vuoto o
      * iniziare con uno spazio. */
-    if (strLocal[i] == ' ' || strLocal[i] == '\0')
-        return -1;
+    if (strLocal[i] == ' ' || strLocal[i] == '\0') {
+        strcpy(res.message, "Errore, il campo non può essere vuoto.");
+        res.code = -1;
+        return res;
+    }
 
     switch(ctrl) {
 
@@ -170,8 +173,11 @@ int validator(char str[], int ctrl) {
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del nome o del cognome sono presenti caratteri diversi dalle lettere
                  * dell'alfabeto latino, viene restituito il codice di errore -2. */
-                if (strLocal[i] < 'a' || strLocal[i] > 'z')
-                    return -2;
+                if (strLocal[i] < 'a' || strLocal[i] > 'z') {
+                    strcpy(res.message, "Errore, il nome e il cognome possono contenere solo lettere.");
+                    res.code = -2;
+                    return res;
+                }
                 i++;
             }
             break;
@@ -180,8 +186,11 @@ int validator(char str[], int ctrl) {
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del numero di telefono sono presenti caratteri diversi dalle cifre,
                  * viene restituito il codice di errore -3. */
-                if (strLocal[i] < '0' || strLocal[i] > '9')
-                    return -3;
+                if (strLocal[i] < '0' || strLocal[i] > '9'){
+                    strcpy(res.message, "Errore, il numero di telefono può contenere solamente cifre.");
+                    res.code = -3;
+                    return res;
+                }
                 i++;
             }
             break;
@@ -192,43 +201,69 @@ int validator(char str[], int ctrl) {
             while(strLocal[j] != '.' && j != -1) // Cicla fino a trovare la posizione del carattere '.' o, nel caso non fosse presente, fino all'inizio della stringa.
                 j--;
 
-            /* Se il carattere '.' si trova prima del carattere '@' viene restituito il codice di errore -4. */
-            if (i > j)
-                return -4;
+            /* Se l'indirizzo email termina con il carattere '.' viene restituito il codice di errore -4. */
+            if (strLocal[j + 1] == '\0') {
+                strcpy(res.message, "Errore, l'indirizzo email non può terminare con un punto.");
+                res.code -4;
+                return res;
+            }
+
+            /* Se il carattere '.' si trova prima del carattere '@' viene restituito il codice di errore -5. */
+            if (i > j) {
+                strcpy(res.message, "Errore, il formato dell'email non è valido.");
+                res.code = -5;
+                return res;
+            }
 
             /* Controlla che il nome utente non inizi e non finisca con un carattere diverso da una lettera o una
-             * cifra. Se lo fa restituisce il codice di errore -5. */
-            if (((strLocal[0] < 'a' || strLocal[0] > 'z') && (strLocal[0] < '0' || strLocal[0] > '9')) || (strLocal[i - 1] < 'a' || strLocal[i - 1] > 'z') && (strLocal[i - 1] < '0' || strLocal[i - 1] > '9'))
-                return -5;
+             * cifra. Se lo fa restituisce il codice di errore -6. */
+            if (((strLocal[0] < 'a' || strLocal[0] > 'z') && (strLocal[0] < '0' || strLocal[0] > '9')) || (strLocal[i - 1] < 'a' || strLocal[i - 1] > 'z') && (strLocal[i - 1] < '0' || strLocal[i - 1] > '9')) {
+                strcpy(res.message, "Errore, il nome utente deve iniziare e terminare con una lettera o un numero.");
+                res.code = -6;
+                return res;
+            }
 
             /* Controlla che il dominio di secondo livello non inizi e non finisca con un carattere diverso da una
-             * lettera o una cifra. Se lo fa restituisce il codice di errore -6. */
-            if (((strLocal[i + 1] < 'a' || strLocal[i + 1] > 'z') && (strLocal[i + 1] < '0' || strLocal[i + 1] > '9')) || (strLocal[j - 1] < 'a' || strLocal[j - 1] > 'z') && (strLocal[j - 1] < '0' || strLocal[j - 1] > '9'))
-                return -6;
+             * lettera o una cifra. Se lo fa restituisce il codice di errore -7. */
+            if (((strLocal[i + 1] < 'a' || strLocal[i + 1] > 'z') && (strLocal[i + 1] < '0' || strLocal[i + 1] > '9')) || (strLocal[j - 1] < 'a' || strLocal[j - 1] > 'z') && (strLocal[j - 1] < '0' || strLocal[j - 1] > '9')) {
+                strcpy(res.message, "Errore, il dominio deve iniziare e terminare con una lettera o un numero.");
+                res.code = -7;
+                return res;
+            }
 
             /* Controlla che non siano presenti caratteri invalidi nel nome utente. Se presenti restituisce il
-             * codice di errore -7. */
+             * codice di errore -8. */
             for(k = 0; k < i; k++)
-                if ((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
-                    return -7;
+                if ((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_') {
+                    strcpy(res.message, "Errore, sono presenti caratteri non validi nel nome utente.");
+                    res.code = -8;
+                    return res;
+                }
 
             /* Controlla che non siano presenti caratteri invalidi nel dominio di secondo livello. Se presenti
-             * restituisce il codice di errore -8. */
+             * restituisce il codice di errore -9. */
             for(k = i + 1; k < j; k++)
-                if ((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
-                    return -8;
+                if ((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_') {
+                    strcpy(res.message, "Errore, sono presenti caratteri non validi nel dominio.");
+                    res.code = -9;
+                    return res;
+                }
 
             /* Controlla che non siano presenti caratteri invalidi nel dominio di primo livello. Se presenti
-             * restituisce il codice di errore -9. */
+             * restituisce il codice di errore -10. */
             for(k = j + 1; k < strlen(strLocal); k++)
-                if (strLocal[k] < 'a' || strLocal[k] > 'z')
-                    return -9;
+                if (strLocal[k] < 'a' || strLocal[k] > 'z') {
+                    strcpy(res.message, "Errore, sono presenti caratteri non validi nel dominio.");
+                    res.code = -10;
+                    return res;
+                }
             break;
     }
 
     /* Se all'interno della stringa non è presente alcun errore, viene restituito il valore 0 */
-    return 0;
-
+    strcpy(res.message, "OK");
+    res.code = 0;
+    return res;
 }
 
 /**
@@ -244,4 +279,50 @@ void toLowercase(char str[]) {
             str[i] += 32;
         i++;
     }
+}
+
+/**
+ * Prende in ingresso un input e esegue un controllo su di esso.
+ *
+ * @param inStr Stringa di input.
+ * @param length Lunghezza della stringa di input.
+ * @param ctrl Tipo di controllo da eseguire.
+ * @param label Label da visualizzare nella printf.
+ */
+void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
+    Response check;
+
+    do {
+        printf("\n%s: ", label);
+        readLine(inStr, length);
+        check = validator(inStr, ctrl);
+
+        if (check.code != 0) {
+            printf("%s", check.message);
+            ignoreInputUntil('\n');
+        }
+    } while(check.code != 0);
+}
+
+TipologiaContatto getGroup() {
+    TipologiaContatto gruppo;
+
+    do {
+        printf("\nGruppo:"
+               "\n1) Lavoro"
+               "\n2) Famiglia"
+               "\n3) Amici"
+               "\n4) Altro\n");
+        scanf("%d", &gruppo);
+        gruppo--;
+
+        if (gruppo < LAVORO || gruppo > ALTRO) {
+            printf("Errore: scelta non valida");
+            getchar();
+            ignoreInputUntil('\n');
+        }
+
+    } while(gruppo < LAVORO || gruppo > ALTRO);
+
+    return gruppo;
 }
