@@ -60,8 +60,8 @@ typedef struct {
     TipologiaContatto gruppo;
 } Contatto;
 
-Contatto inserisciContatto();
-int validator(char str[], int ctrl, int length);
+void inserisciContatto(Contatto *nuovo);
+int validator(char str[], int ctrl);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
 void toLowercase(char str[]);
@@ -70,44 +70,42 @@ int main() {
 
     Contatto nuovoContatto;
 
-    nuovoContatto = inserisciContatto();
+    inserisciContatto(&nuovoContatto);
 
     return 0;
 }
 
-Contatto inserisciContatto() {
-    Contatto nuovo;
+void inserisciContatto(Contatto *nuovo) {
 
     printf("\nNome: ");
-    readLine(nuovo.nome, LENGTH + 1);
-    printf("%s", nuovo.nome);
-    printf("\n%d", validator(nuovo.nome, NOME, LENGTH + 1));
+    readLine(nuovo->nome, LENGTH + 1);
+    printf("%s", nuovo->nome);
+    printf("\n%d", validator(nuovo->nome, NOME));
 
     printf("\nCognome: ");
-    readLine(nuovo.cognome, LENGTH + 1);
-    printf("%s", nuovo.cognome);
-    printf("\n%d", validator(nuovo.cognome, NOME, LENGTH + 1));
+    readLine(nuovo->cognome, LENGTH + 1);
+    printf("%s", nuovo->cognome);
+    printf("\n%d", validator(nuovo->cognome, NOME));
 
     printf("\nTelefono: ");
-    readLine(nuovo.telefono, LENGTH + 1);
-    printf("%s", nuovo.telefono);
-    printf("\n%d", validator(nuovo.telefono, TELEFONO, LENGTH + 1));
+    readLine(nuovo->telefono, LENGTH + 1);
+    printf("%s", nuovo->telefono);
+    printf("\n%d", validator(nuovo->telefono, TELEFONO));
 
     printf("\nE-mail: ");
-    readLine(nuovo.email, LENGTH + 1);
-    printf("%s", nuovo.email);
+    readLine(nuovo->email, LENGTH + 1);
+    printf("%s", nuovo->email);
+    printf("\n%d", validator(nuovo->email, EMAIL));
 
     printf("\nGruppo: ");
-    scanf("%d", &nuovo.gruppo);
-    printf("%d", nuovo.gruppo);
-
-    return nuovo;
+    scanf("%d", &nuovo->gruppo);
+    printf("%d", nuovo->gruppo);
 
 }
 
 /**
  * La funzione popola una stringa di carattere inserendo il terminatore alla fine di essa quando viene premuto il
- * carattere \n o quando si raggiunge la sua fine. Vengono effettuati controlli sulla lunghezza della stringa per
+ * carattere '\n' o quando si raggiunge la sua fine. Vengono effettuati controlli sulla lunghezza della stringa per
  * evitare di riempire il buffer con input indesiderati.
  *
  * @param str Stringa da popolare.
@@ -117,7 +115,7 @@ void readLine(char str[], int length) {
     int i = 0; // Indice.
     char ch; // Variabile di buffer.
 
-    /* Il ciclo viene ripetuto finché non viene premuto il carattere \n */
+    /* Il ciclo viene ripetuto finché non viene premuto il carattere '\n' */
     do {
         /* Se */
         if (i != length) {
@@ -125,8 +123,8 @@ void readLine(char str[], int length) {
             str[i] = ch;
             i++;
             /* Se si arriva alla fine della stringa, ogni nuovo carattere digitato viene ignorato dalla funzione
-             * ignoreInputUntil e viene inserito il carattere \n nella variabile di buffer ch in maniera tale da causare
-             * l'uscita dal ciclo do-while. */
+             * ignoreInputUntil e viene inserito il carattere '\n' nella variabile di buffer ch in maniera tale da
+             * causare l'uscita dal ciclo do-while. */
         } else {
             ignoreInputUntil('\n');
             ch = '\n';
@@ -151,19 +149,23 @@ void ignoreInputUntil(char endCh) {
     } while(ch != endCh);
 }
 
-int validator(char str[], int ctrl, int length) {
-    int i = 0;
-    char strLocal[length]; // Stringa locale dove verrà copiata la stringa ricevuta come parametro per essere elaborata dai controlli.
+int validator(char str[], int ctrl) {
+    int i, j, k;
+    char strLocal[strlen(str)]; // Stringa locale dove verrà copiata la stringa ricevuta come parametro per essere elaborata dai controlli.
 
     strcpy(strLocal, str); // Copia della stringa ricevuta come parametro.
     toLowercase(strLocal); // strLocal viene convertita il lowercase per facilitare i controlli
 
-    /* Se la stringa inizia con \n o ' ', viene restituito il codice di errore -1: il campo non può essere vuoto o
+    i = 0;
+    j = strlen(strLocal);
+
+    /* Se la stringa inizia con '\n' o ' ', viene restituito il codice di errore -1: il campo non può essere vuoto o
      * iniziare con uno spazio. */
     if (strLocal[i] == ' ' || strLocal[i] == '\0')
         return -1;
 
     switch(ctrl) {
+
         case NOME:
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del nome o del cognome sono presenti caratteri diversi dalle lettere
@@ -173,6 +175,7 @@ int validator(char str[], int ctrl, int length) {
                 i++;
             }
             break;
+
         case TELEFONO:
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del numero di telefono sono presenti caratteri diversi dalle cifre,
@@ -182,13 +185,46 @@ int validator(char str[], int ctrl, int length) {
                 i++;
             }
             break;
-        case EMAIL:
 
+        case EMAIL:
+            while(strLocal[i] != '@' || i == strlen(strLocal)) // Cicla fino a trovare la posizione del carattere '@'.
+                i++;
+            while(strLocal[j] != '.' || i == 0) // Cicla fino a trovare la posizione del carattere '.'.
+                j--;
+
+            /* Se il carattere '.' si trova prima del carattere '@' viene restituito il codice di errore -4. */
+            if (i > j)
+                return -4;
+
+            /* Controlla che il nome utente non inizi e non finisca con un carattere diverso da una lettera o una
+             * cifra. Se lo fa restituisce il codice di errore -5. */
+            if (((strLocal[0] < 'a' || strLocal[0] > 'z') && (strLocal[0] < '0' || strLocal[0] > '9')) || (strLocal[i - 1] < 'a' || strLocal[i - 1] > 'z') && (strLocal[i - 1] < '0' || strLocal[i - 1] > '9'))
+                return -5;
+
+            /* Controlla che il dominio di secondo livello non inizi e non finisca con un carattere diverso da una
+             * lettera o una cifra. Se lo fa restituisce il codice di errore -6. */
+            if (((strLocal[i + 1] < 'a' || strLocal[i + 1] > 'z') && (strLocal[i + 1] < '0' || strLocal[i + 1] > '9')) || (strLocal[j - 1] < 'a' || strLocal[j - 1] > 'z') && (strLocal[j - 1] < '0' || strLocal[j - 1] > '9'))
+                return -6;
+
+            /* Controlla che non siano presenti caratteri invalidi nel nome utente. Se presenti restituisce il
+             * codice di errore -7. */
+            for(k = 0; k < i; k++)
+                if((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
+                    return -7;
+
+            /* Controlla che non siano presenti caratteri invalidi nel dominio di secondo livello. Se presenti
+             * restituisce il codice di errore -8. */
+            for(k = i + 1; k < j; k++)
+                if((strLocal[k] < 'a' || strLocal[k] > 'z') && (strLocal[k] < '0' || strLocal[k] > '9') && strLocal[k] != '-' && strLocal[k] != '.' && strLocal[k] != '_')
+                    return -8;
+
+            /* Controlla che non siano presenti caratteri invalidi nel dominio di primo livello. Se presenti
+             * restituisce il codice di errore -9. */
+            for(k = j + 1; k < strlen(strLocal); k++)
+                if(strLocal[k] < 'a' || strLocal[k] > 'z')
+                    return -9;
             break;
     }
-
-
-
 
     /* Se all'interno della stringa non è presente alcun errore, viene restituito il valore 0 */
     return 0;
