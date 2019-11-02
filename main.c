@@ -89,6 +89,7 @@ typedef struct {
 void start();
 int menu();
 Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag);
+void addToContactsArray(Contatto *cont_array, Contatto newRec, int *currAl, int *updAl);
 void checkAlloc(Contatto *alloc);
 void newContact(Contatto *new);
 void readLine(char str[], int length);
@@ -100,59 +101,31 @@ TipologiaContatto getGroup(char label[]);
 void printContact(Contatto *cont);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
 void modifyContact(Contatto *cont);
+void concat(char *concatHere, char *str1, char *str2);
+void sortArray(Contatto *cont_array, int *currAl);
 
 int main() {
 
     start();
 
-    /*
-    Contatto nuovoContatto;
-    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
 
+    Contatto nuovoContatto = {"anrdriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
+    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
+/*
+    char str[60];
+
+    concat(str, nuovoContatto.nome, nuovoContatto.cognome);
+    printf("%s", str);
+*/
+/*
     newContact(&nuovoContatto);
     printContact(&nuovoContatto);
     modifyContact(&nuovoContatto);
     printContact(&nuovoContatto);
-    */
+*/
 
     return 0;
 }
-
-/*
-void start_proto() {
-
-    Contatto *contacts_array = NULL;
-    int currentAlloc = 0, updateAlloc = 1, i;
-    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
-
-
-
-
-    printf("\n");
-
-    printf("Sono presenti %d record nell'array dei contatti, quanti te ne servono? ", currentAlloc);
-    scanf("%d", &updateAlloc);
-    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
-
-    for(i = 0; i < currentAlloc; i++) {
-        contacts_array[i].test = i;
-        printf("%d ", contacts_array[i].test);
-    }
-
-    printf("\n");
-
-    printf("Sono presenti %d record nell'array dei contatti, quanti te ne servono? ", currentAlloc);
-    scanf("%d", &updateAlloc);
-    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
-
-    for(i = 0; i < currentAlloc; i++) {
-        contacts_array[i].test = i;
-        printf("%d ", contacts_array[i].test);
-    }
-
-
-}
-*/
 
 /**
  * Avvia il programma e gestisce la scelta effettuata nel menu.
@@ -174,15 +147,56 @@ void start() {
             case 1:
                 contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
                 newContact(&contacts_array[currentAlloc - 1]);
-                updateAlloc++; // Aumenta la conta dei record di 1 per il prossimo inserimento.
+                sortArray(contacts_array, &currentAlloc);
                 break;
             case 2:
+            case 3:
                 for(i=0; i<currentAlloc; i++)
                     printContact(&contacts_array[i]);
-            case 3:
                 break;
         }
     } while(choice != MENU_MAX);
+}
+
+/**
+ * Ordina alfabeticamente l'array dei contatti: prima il nome, poi il cognome.
+ *
+ * @param cont_array Puntatore all'array dei contatti.
+ * @param currAl Lunghezza dell'array dei contatti.
+ */
+void sortArray(Contatto *cont_array, int *currAl) {
+    Contatto tmp; // Variabile d'appoggio per lo swap
+    char nameSurname1[LENGTH * 2 + 1], nameSurname2[LENGTH * 2 + 1];
+    int i, j;
+
+    /* Algoritmo di ordinamento sulle stringhe concatenate di nome e cognome per ogni elemento nell'array
+     * dei contatti. L'intero array dei contatti viene visto come una matrice dove le righe sono i contatti e le
+     * colonne le stringhe concatenate di nome e cognome di ogni contatto. Ad ogni ciclo for esterno, ogni elemento
+     * dell'array viene comparato con tutti quelli seguenti e, se alfabeticamente successivo a qualcuno di questi,
+     * viene effettuato uno swap. */
+    for(i = 0; i < *currAl; i++) {
+        concat(nameSurname1, cont_array[i].nome, cont_array[i].cognome);
+        for(j = i + 1; j < *currAl; j++) {
+            concat(nameSurname2, cont_array[j].nome, cont_array[j].cognome);
+            if (strcmp(nameSurname1, nameSurname2) > 0) {
+                tmp = cont_array[i];
+                cont_array[i] = cont_array[j];
+                cont_array[j] = tmp;
+            }
+        }
+    }
+}
+
+/**
+ * Inserisce in una stringa vuota la concatenazione di altre due stringhe.
+ *
+ * @param outptStr Stringa vuota.
+ * @param str1 Stringa da concatenare in prima posizione.
+ * @param str2 Stringa da concatenare in seconda posizione.
+ */
+void concat(char *concatHere, char *str1, char *str2) {
+    strcpy(concatHere, str1);
+    strcat(concatHere, str2);
 }
 
 /**
@@ -237,15 +251,18 @@ Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag) {
                 buffer = *updAl - *currAl;
                 *currAl += buffer;
                 new_alloc = (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+                *updAl += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
             } else if (*updAl < *currAl) {
                 buffer = *currAl - *updAl;
                 *currAl -= buffer;
                 new_alloc = (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+                *updAl -= 1; // Decrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
             } else {
+                *updAl += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 return cont_array;
             }
     }
