@@ -52,6 +52,8 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #define MESSAGE 100 // Lunghezza massima dei messaggi di errore.
 #define MODIF_MIN 1 // Valore minimo per la scelta durante la modifica del contatto.
 #define MODIF_MAX 5 // Valore massimo per la scelta durante la modifica del contatto.
+#define MENU_MIN 1 // Valore minimo per la scelta nel menu.
+#define MENU_MAX 5 // Valore massimo per la scelta nel menu.
 
 /* Definizione delle label per l'inserimento dei vari campi in maniera tale da poterle modificare senza dover
  * andare a toccare il codice. */
@@ -71,18 +73,22 @@ typedef enum {NOME, COGNOME, TELEFONO, EMAIL} Controllo; // Enum utilizzata dall
 typedef struct {
     char nome[LENGTH + 1];
     char cognome[LENGTH + 1];
-    char telefono[LENGTH + 1];
+    char telefono[TEL_LENGTH + 1];
     char email[LENGTH + 1];
     TipologiaContatto gruppo;
+    int test; // Variabile di check.
 } Contatto;
 
 /* Struttura per ritornare un messaggio di errore e un codice ad esso associato. Il codice non si è poi rivelato
- * utile ai fini dell'esecuzione del programma. */
+ * utile a fini di implementazione. */
 typedef struct {
     int code;
     char message[MESSAGE];
 } Response;
 
+void start();
+int menu();
+Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag);
 void newContact(Contatto *new);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
@@ -96,15 +102,139 @@ void modifyContact(Contatto *cont);
 
 int main() {
 
+    start();
+
+    /*
     Contatto nuovoContatto;
-    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "reverendjack@hotmail.com", AMICI};
+    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
 
     newContact(&nuovoContatto);
     printContact(&nuovoContatto);
     modifyContact(&nuovoContatto);
     printContact(&nuovoContatto);
+    */
 
     return 0;
+}
+
+/*
+void start_proto() {
+
+    Contatto *contacts_array = NULL;
+    int currentAlloc = 0, updateAlloc = 1, i;
+    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+
+
+
+
+    printf("\n");
+
+    printf("Sono presenti %d record nell'array dei contatti, quanti te ne servono? ", currentAlloc);
+    scanf("%d", &updateAlloc);
+    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+
+    for(i = 0; i < currentAlloc; i++) {
+        contacts_array[i].test = i;
+        printf("%d ", contacts_array[i].test);
+    }
+
+    printf("\n");
+
+    printf("Sono presenti %d record nell'array dei contatti, quanti te ne servono? ", currentAlloc);
+    scanf("%d", &updateAlloc);
+    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+
+    for(i = 0; i < currentAlloc; i++) {
+        contacts_array[i].test = i;
+        printf("%d ", contacts_array[i].test);
+    }
+
+
+}
+*/
+
+/**
+ * Avvia il programma e gestisce la scelta effettuata nel menu.
+ */
+void start() {
+
+    static Contatto *contacts_array = NULL;
+    static int currentAlloc = 0, updateAlloc = 1;
+    int choice;
+
+    do {
+        choice = menu();
+
+        switch (choice) {
+            case 1:
+                contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+                newContact(&contacts_array[0]);
+                break;
+            case 2:
+                printContact(&contacts_array[0]);
+                break;
+            case 3:
+                modifyContact(&contacts_array[0]);
+                break;
+        }
+    } while(choice != MENU_MAX);
+}
+
+/**
+ * Visualizza il menu e chiede all'utente quale operazione effettuare.
+ *
+ * @return Scelta dell'utente.
+ */
+int menu() {
+    int choice;
+    _Bool isOk;
+
+    do {
+        printf("RUBRICA TELEFONICA\n"
+               "1) Aggiungi\n"
+               "2) Modifica\n"
+               "3) Rimuovi\n"
+               "4) Ricerca\n"
+               "5) Esci\n");
+        scanf("%d", &choice);
+        ignoreInputUntil('\n');
+
+        isOk = checkRange(choice, MENU_MIN, MENU_MAX, "Errore: scelta non valida.");
+
+    } while(!isOk);
+
+    return choice;
+}
+
+/**
+ * Gestisce l'allocazione e la riallocazione di un array dinamico di tipo Contatto.
+ *
+ * @param currAl Puntatore alla lunghezza attuale dell'array dinamico.
+ * @param updAl Puntatore alla nuova lunghezza dell'array dinamico.
+ * @param cont_array Puntatore all'array dinamico.
+ * @param flag Se false alloca, se true rialloca.
+ * @return Puntatore
+ */
+Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag) {
+    int buffer;
+
+    switch (flag) {
+        case false:
+            *currAl = *updAl;
+            return (Contatto *) malloc (*currAl * sizeof(Contatto));
+            break;
+        case true:
+            if (*updAl > *currAl) {
+                buffer = *updAl - *currAl;
+                *currAl += buffer;
+                return (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+            } else if (*updAl < *currAl) {
+                buffer = *currAl - *updAl;
+                *currAl -= buffer;
+                return (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+            } else
+                return cont_array;
+    }
 }
 
 /**
@@ -113,13 +243,11 @@ int main() {
  * @param nuovo Puntatore al nuovo contatto.
  */
 void newContact(Contatto *new) {
-
     getInput(new->nome, LENGTH + 1, NOME, NAME_LABEL);
     getInput(new->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
     getInput(new->telefono, TEL_LENGTH + 1, TELEFONO, TEL_LABEL);
     getInput(new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
     new->gruppo = getGroup(GROUP_LABEL);
-
 }
 
 /**
@@ -189,7 +317,7 @@ Response validator(char str[], Controllo ctrl) {
     /* Se la stringa inizia con '\n' o ' ', viene restituito il codice di errore -1: il campo non può essere vuoto o
      * iniziare con uno spazio. */
     if (strLocal[i] == ' ' || strLocal[i] == '\0') {
-        strcpy(res.message, "Errore, il campo non può essere vuoto.");
+        strcpy(res.message, "Errore, il campo non può essere vuoto o iniziare con uno spazio.");
         res.code = -1;
         return res;
     }
