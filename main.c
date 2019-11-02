@@ -76,7 +76,6 @@ typedef struct {
     char telefono[TEL_LENGTH + 1];
     char email[LENGTH + 1];
     TipologiaContatto gruppo;
-    int test; // Variabile di check.
 } Contatto;
 
 /* Struttura per ritornare un messaggio di errore e un codice ad esso associato. Il codice non si è poi rivelato
@@ -87,27 +86,25 @@ typedef struct {
 } Response;
 
 void start();
+void sortArray(Contatto *cont_array, int *curr_al);
+void concat(char *conc_here, char *p_str1, char *p_str2);
 int menu();
-Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag);
-void addToContactsArray(Contatto *cont_array, Contatto newRec, int *currAl, int *updAl);
-void checkAlloc(Contatto *alloc);
-void newContact(Contatto *new);
+Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_array, _Bool flag);
+void checkAlloc(Contatto *p_alloc);
+void newContact(Contatto *p_new);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
 Response validator(char str[], Controllo ctrl);
 void toLowercase(char str[]);
-void getInput(char *inStr, int length, Controllo ctrl, char label[]);
+void getInput(char *in_str, int length, Controllo ctrl, char label[]);
 TipologiaContatto getGroup(char label[]);
-void printContact(Contatto *cont);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
-void modifyContact(Contatto *cont);
-void concat(char *concatHere, char *str1, char *str2);
-void sortArray(Contatto *cont_array, int *currAl);
+void printContact(Contatto *p_cont);
+void modifyContact(Contatto *p_cont);
 
 int main() {
 
     start();
-
 
     Contatto nuovoContatto = {"anrdriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
     Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
@@ -164,7 +161,7 @@ void start() {
  * @param cont_array Puntatore all'array dei contatti.
  * @param currAl Lunghezza dell'array dei contatti.
  */
-void sortArray(Contatto *cont_array, int *currAl) {
+void sortArray(Contatto *cont_array, int *curr_al) {
     Contatto tmp; // Variabile d'appoggio per lo swap
     char nameSurname1[LENGTH * 2 + 1], nameSurname2[LENGTH * 2 + 1];
     int i, j;
@@ -174,10 +171,11 @@ void sortArray(Contatto *cont_array, int *currAl) {
      * colonne le stringhe concatenate di nome e cognome di ogni contatto. Ad ogni ciclo for esterno, ogni elemento
      * dell'array viene comparato con tutti quelli seguenti e, se alfabeticamente successivo a qualcuno di questi,
      * viene effettuato uno swap. */
-    for(i = 0; i < *currAl; i++) {
+    for(i = 0; i < *curr_al; i++) {
         concat(nameSurname1, cont_array[i].nome, cont_array[i].cognome);
-        for(j = i + 1; j < *currAl; j++) {
+        for(j = i + 1; j < *curr_al; j++) {
             concat(nameSurname2, cont_array[j].nome, cont_array[j].cognome);
+            // Swap
             if (strcmp(nameSurname1, nameSurname2) > 0) {
                 tmp = cont_array[i];
                 cont_array[i] = cont_array[j];
@@ -190,13 +188,13 @@ void sortArray(Contatto *cont_array, int *currAl) {
 /**
  * Inserisce in una stringa vuota la concatenazione di altre due stringhe.
  *
- * @param outptStr Stringa vuota.
- * @param str1 Stringa da concatenare in prima posizione.
- * @param str2 Stringa da concatenare in seconda posizione.
+ * @param conc_here Stringa vuota.
+ * @param p_str1 Stringa da concatenare in prima posizione.
+ * @param p_str2 Stringa da concatenare in seconda posizione.
  */
-void concat(char *concatHere, char *str1, char *str2) {
-    strcpy(concatHere, str1);
-    strcat(concatHere, str2);
+void concat(char *conc_here, char *p_str1, char *p_str2) {
+    strcpy(conc_here, p_str1);
+    strcat(conc_here, p_str2);
 }
 
 /**
@@ -228,41 +226,41 @@ int menu() {
 /**
  * Gestisce l'allocazione e la riallocazione di un array dinamico di tipo Contatto.
  *
- * @param currAl Puntatore alla variabile che indica la lunghezza attuale dell'array dinamico.
- * @param updAl Puntatore alla variabile che indica la nuova lunghezza desiderata dell'array dinamico.
+ * @param curr_al Puntatore alla variabile che indica la lunghezza attuale dell'array dinamico.
+ * @param upd_al Puntatore alla variabile che indica la nuova lunghezza desiderata dell'array dinamico.
  * @param cont_array Puntatore all'array dinamico, utile in caso di riallocazione.
  * @param flag Se false alloca, se true rialloca.
  * @return Puntatore all'array dinamico allocato o riallocato.
  */
-Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag) {
+Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_array, _Bool flag) {
     Contatto *new_alloc = NULL;
     int buffer;
 
     switch (flag) {
         /* Allocazione */
         case false:
-            *currAl = *updAl;
-            new_alloc = (Contatto *) malloc (*currAl * sizeof(Contatto));
+            *curr_al = *upd_al;
+            new_alloc = (Contatto *) malloc (*curr_al * sizeof(Contatto));
             checkAlloc(new_alloc);
             return new_alloc;
         /* Riallocazione */
         case true:
-            if (*updAl > *currAl) {
-                buffer = *updAl - *currAl;
-                *currAl += buffer;
-                new_alloc = (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
-                *updAl += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
+            if (*upd_al > *curr_al) {
+                buffer = *upd_al - *curr_al;
+                *curr_al += buffer;
+                new_alloc = (Contatto *) realloc (cont_array, *curr_al * sizeof(Contatto));
+                *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
-            } else if (*updAl < *currAl) {
-                buffer = *currAl - *updAl;
-                *currAl -= buffer;
-                new_alloc = (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
-                *updAl -= 1; // Decrementa la conta dei record di 1 per il prossimo inserimento.
+            } else if (*upd_al < *curr_al) {
+                buffer = *curr_al - *upd_al;
+                *curr_al -= buffer;
+                new_alloc = (Contatto *) realloc (cont_array, *curr_al * sizeof(Contatto));
+                *upd_al -= 1; // Decrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
             } else {
-                *updAl += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
+                *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 return cont_array;
             }
     }
@@ -271,10 +269,10 @@ Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag) {
 /**
  * Controlla se l'allocazione di memoria è andata a buon fine. Se così non fosse termina il programma.
  *
- * @param cont_array Puntatore alla nuova allocazione.
+ * @param p_alloc Puntatore alla nuova allocazione.
  */
-void checkAlloc(Contatto *alloc) {
-    if (alloc == NULL) {
+void checkAlloc(Contatto *p_alloc) {
+    if (p_alloc == NULL) {
         printf("Errore: allocazione non riuscita.");
         exit(-1);
     }
@@ -283,14 +281,14 @@ void checkAlloc(Contatto *alloc) {
 /**
  * Prende in ingresso un nuovo contatto e acquisisce in input tutti i campi.
  *
- * @param nuovo Puntatore al nuovo contatto.
+ * @param p_new Puntatore al nuovo contatto.
  */
-void newContact(Contatto *new) {
-    getInput(new->nome, LENGTH + 1, NOME, NAME_LABEL);
-    getInput(new->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
-    getInput(new->telefono, TEL_LENGTH + 1, TELEFONO, TEL_LABEL);
-    getInput(new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
-    new->gruppo = getGroup(GROUP_LABEL);
+void newContact(Contatto *p_new) {
+    getInput(p_new->nome, LENGTH + 1, NOME, NAME_LABEL);
+    getInput(p_new->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
+    getInput(p_new->telefono, TEL_LENGTH + 1, TELEFONO, TEL_LABEL);
+    getInput(p_new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
+    p_new->gruppo = getGroup(GROUP_LABEL);
 }
 
 /**
@@ -416,7 +414,7 @@ Response validator(char str[], Controllo ctrl) {
 
             /* Controlla che il nome utente non inizi e non finisca con un carattere diverso da una lettera o una
              * cifra. Se lo fa restituisce il codice di errore -6. */
-            if (((strLocal[0] < 'a' || strLocal[0] > 'z') && (strLocal[0] < '0' || strLocal[0] > '9')) || (strLocal[i - 1] < 'a' || strLocal[i - 1] > 'z') && (strLocal[i - 1] < '0' || strLocal[i - 1] > '9')) {
+            if (((strLocal[0] < 'a' || strLocal[0] > 'z') && (strLocal[0] < '0' || strLocal[0] > '9')) || ((strLocal[i - 1] < 'a' || strLocal[i - 1] > 'z') && (strLocal[i - 1] < '0' || strLocal[i - 1] > '9'))) {
                 strcpy(res.message, "Errore, il nome utente deve iniziare e terminare con una lettera o un numero.");
                 res.code = -6;
                 return res;
@@ -424,7 +422,7 @@ Response validator(char str[], Controllo ctrl) {
 
             /* Controlla che il dominio di secondo livello non inizi e non finisca con un carattere diverso da una
              * lettera o una cifra. Se lo fa restituisce il codice di errore -7. */
-            if (((strLocal[i + 1] < 'a' || strLocal[i + 1] > 'z') && (strLocal[i + 1] < '0' || strLocal[i + 1] > '9')) || (strLocal[j - 1] < 'a' || strLocal[j - 1] > 'z') && (strLocal[j - 1] < '0' || strLocal[j - 1] > '9')) {
+            if (((strLocal[i + 1] < 'a' || strLocal[i + 1] > 'z') && (strLocal[i + 1] < '0' || strLocal[i + 1] > '9')) || ((strLocal[j - 1] < 'a' || strLocal[j - 1] > 'z') && (strLocal[j - 1] < '0' || strLocal[j - 1] > '9'))) {
                 strcpy(res.message, "Errore, il dominio deve iniziare e terminare con una lettera o un numero.");
                 res.code = -7;
                 return res;
@@ -483,18 +481,18 @@ void toLowercase(char str[]) {
 /**
  * Prende in ingresso un input e esegue un controllo su di esso.
  *
- * @param inStr Stringa di input.
+ * @param in_str Stringa di input.
  * @param length Lunghezza della stringa di input.
  * @param ctrl Tipo di controllo da eseguire.
  * @param label Label da visualizzare nella printf.
  */
-void getInput(char *inStr, int length, Controllo ctrl, char label[]) {
+void getInput(char *in_str, int length, Controllo ctrl, char label[]) {
     Response check;
 
     do {
         printf("%s: ", label);
-        readLine(inStr, length);
-        check = validator(inStr, ctrl);
+        readLine(in_str, length);
+        check = validator(in_str, ctrl);
 
         if (check.code != 0) {
             printf("%s", check.message);
@@ -547,18 +545,18 @@ _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]) {
 /**
  * Prende in ingresso un contatto e lo stampa a video.
  *
- * @param contact Puntatore al contatto da stampare a video.
+ * @param p_cont Puntatore al contatto da stampare a video.
  */
-void printContact(Contatto *cont) {
+void printContact(Contatto *p_cont) {
     printf("Nome: %s\n"
            "Cognome: %s\n"
            "Telefono: %s\n"
            "E-mail: %s\n"
            "Gruppo: ",
-           cont->nome, cont->cognome, cont->telefono,
-           cont->email);
+           p_cont->nome, p_cont->cognome, p_cont->telefono,
+           p_cont->email);
 
-    switch (cont->gruppo) {
+    switch (p_cont->gruppo) {
         case LAVORO:
             printf("Lavoro\n");
             break;
@@ -572,19 +570,21 @@ void printContact(Contatto *cont) {
             printf("Altro\n");
             break;
     }
+
+    printf("\n");
 }
 
 /**
  * Prende in ingresso un contatto e ne modifica un campo dopo aver chiesto all'utente quale campo vuole modificare.
  *
- * @param cont Puntatore al contatto da modificare.
+ * @param p_cont Puntatore al contatto da modificare.
  */
-void modifyContact(Contatto *cont) {
+void modifyContact(Contatto *p_cont) {
     int choice;
     _Bool isOk;
 
     do {
-        printContact(cont);
+        printContact(p_cont);
 
         printf("Quale campo vuoi modificare?\n"
                "1) Nome\n"
@@ -600,19 +600,19 @@ void modifyContact(Contatto *cont) {
 
     switch (choice) {
         case 1:
-            getInput(cont->nome, LENGTH + 1, NOME, NAME_LABEL);
+            getInput(p_cont->nome, LENGTH + 1, NOME, NAME_LABEL);
             break;
         case 2:
-            getInput(cont->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
+            getInput(p_cont->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
             break;
         case 3:
-            getInput(cont->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
+            getInput(p_cont->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
             break;
         case 4:
-            getInput(cont->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
+            getInput(p_cont->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
             break;
         case 5:
-            cont->gruppo = getGroup(GROUP_LABEL);
+            p_cont->gruppo = getGroup(GROUP_LABEL);
             break;
     }
 }
