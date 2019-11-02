@@ -86,10 +86,11 @@ typedef struct {
 } Response;
 
 void start();
-void sortArray(Contatto *cont_array, int *curr_al);
+//void addContact(Contatto *cont_array, int *curr_al, int *upd_al);
+void sortArray(Contatto *cont_arr, int *curr_al);
 void concat(char *conc_here, char *p_str1, char *p_str2);
 int menu();
-Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_array, _Bool flag);
+Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag);
 void checkAlloc(Contatto *p_alloc);
 void newContact(Contatto *p_new);
 void readLine(char str[], int length);
@@ -142,6 +143,7 @@ void start() {
 
         switch (choice) {
             case 1:
+                //addContact(contacts_array, &currentAlloc, &updateAlloc);
                 contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
                 newContact(&contacts_array[currentAlloc - 1]);
                 sortArray(contacts_array, &currentAlloc);
@@ -155,13 +157,21 @@ void start() {
     } while(choice != MENU_MAX);
 }
 
+/*************
+void addContact(Contatto *cont_array, int *curr_al, int *upd_al) {
+    cont_array = allocate(curr_al, upd_al, cont_array, true);
+    newContact(&cont_array[*curr_al - 1]);
+    sortArray(cont_array, curr_al);
+}
+***********/
+
 /**
  * Ordina alfabeticamente l'array dei contatti: prima il nome, poi il cognome.
  *
- * @param cont_array Puntatore all'array dei contatti.
+ * @param cont_arr Puntatore all'array dei contatti.
  * @param currAl Lunghezza dell'array dei contatti.
  */
-void sortArray(Contatto *cont_array, int *curr_al) {
+void sortArray(Contatto *cont_arr, int *curr_al) {
     Contatto tmp; // Variabile d'appoggio per lo swap
     char nameSurname1[LENGTH * 2 + 1], nameSurname2[LENGTH * 2 + 1];
     int i, j;
@@ -172,14 +182,14 @@ void sortArray(Contatto *cont_array, int *curr_al) {
      * dell'array viene comparato con tutti quelli seguenti e, se alfabeticamente successivo a qualcuno di questi,
      * viene effettuato uno swap. */
     for(i = 0; i < *curr_al; i++) {
-        concat(nameSurname1, cont_array[i].nome, cont_array[i].cognome);
+        concat(nameSurname1, cont_arr[i].nome, cont_arr[i].cognome);
         for(j = i + 1; j < *curr_al; j++) {
-            concat(nameSurname2, cont_array[j].nome, cont_array[j].cognome);
+            concat(nameSurname2, cont_arr[j].nome, cont_arr[j].cognome);
             // Swap
             if (strcmp(nameSurname1, nameSurname2) > 0) {
-                tmp = cont_array[i];
-                cont_array[i] = cont_array[j];
-                cont_array[j] = tmp;
+                tmp = cont_arr[i];
+                cont_arr[i] = cont_arr[j];
+                cont_arr[j] = tmp;
             }
         }
     }
@@ -228,11 +238,11 @@ int menu() {
  *
  * @param curr_al Puntatore alla variabile che indica la lunghezza attuale dell'array dinamico.
  * @param upd_al Puntatore alla variabile che indica la nuova lunghezza desiderata dell'array dinamico.
- * @param cont_array Puntatore all'array dinamico, utile in caso di riallocazione.
+ * @param cont_arr Puntatore all'array dinamico, utile in caso di riallocazione.
  * @param flag Se false alloca, se true rialloca.
  * @return Puntatore all'array dinamico allocato o riallocato.
  */
-Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_array, _Bool flag) {
+Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag) {
     Contatto *new_alloc = NULL;
     int buffer;
 
@@ -248,20 +258,20 @@ Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_array, _Bool flag) 
             if (*upd_al > *curr_al) {
                 buffer = *upd_al - *curr_al;
                 *curr_al += buffer;
-                new_alloc = (Contatto *) realloc (cont_array, *curr_al * sizeof(Contatto));
+                new_alloc = (Contatto *) realloc (cont_arr, *curr_al * sizeof(Contatto));
                 *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
             } else if (*upd_al < *curr_al) {
                 buffer = *curr_al - *upd_al;
                 *curr_al -= buffer;
-                new_alloc = (Contatto *) realloc (cont_array, *curr_al * sizeof(Contatto));
+                new_alloc = (Contatto *) realloc (cont_arr, *curr_al * sizeof(Contatto));
                 *upd_al -= 1; // Decrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
             } else {
                 *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
-                return cont_array;
+                return cont_arr;
             }
     }
 }
