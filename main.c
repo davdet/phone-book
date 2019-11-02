@@ -53,14 +53,20 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #define MODIF_MIN 1 // Valore minimo per la scelta durante la modifica del contatto.
 #define MODIF_MAX 5 // Valore massimo per la scelta durante la modifica del contatto.
 
+/* Definizione delle label per l'inserimento dei vari campi in maniera tale da poterle modificare senza dover
+ * andare a toccare il codice. */
 #define NAME_LABEL "Nome"
 #define SRNAME_LABEL "Cognome"
 #define TEL_LABEL "Telefono"
 #define EMAIL_LABEL "E-mail"
 #define GROUP_LABEL "\nGruppo:\n1) Lavoro\n2) Famiglia\n3) Amici\n4) Altro\n"
 
+/* Definizione dell'istruzione per la pulizia della shell, in maniera tale da poterla commentare/decommentare
+ * in un solo posto. */
+#define CLRSCR printf("\033[H\033[J");
+
 typedef enum {LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
-typedef enum {NOME, TELEFONO, EMAIL} Controllo; // Enum utilizzata dalla funzione validator
+typedef enum {NOME, COGNOME, TELEFONO, EMAIL} Controllo; // Enum utilizzata dalla funzione validator
 
 typedef struct {
     char nome[LENGTH + 1];
@@ -109,7 +115,7 @@ int main() {
 void newContact(Contatto *new) {
 
     getInput(new->nome, LENGTH + 1, NOME, NAME_LABEL);
-    getInput(new->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
+    getInput(new->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
     getInput(new->telefono, TEL_LENGTH + 1, TELEFONO, TEL_LABEL);
     getInput(new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
     new->gruppo = getGroup(GROUP_LABEL);
@@ -190,7 +196,8 @@ Response validator(char str[], Controllo ctrl) {
 
     switch(ctrl) {
 
-        case NOME:
+        case 0:
+        case 1:
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del nome o del cognome sono presenti caratteri diversi dalle lettere
                  * dell'alfabeto latino, viene restituito il codice di errore -2. */
@@ -203,7 +210,7 @@ Response validator(char str[], Controllo ctrl) {
             }
             break;
 
-        case TELEFONO:
+        case 2:
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del numero di telefono sono presenti caratteri diversi dalle cifre,
                  * viene restituito il codice di errore -3. */
@@ -216,7 +223,7 @@ Response validator(char str[], Controllo ctrl) {
             }
             break;
 
-        case EMAIL:
+        case 3:
             while(strLocal[i] != '@' && i != j) // Cicla fino a trovare la posizione del carattere '@' o, nel caso non fosse presente, fino alla fine della stringa.
                 i++;
             while(strLocal[j] != '.' && j != -1) // Cicla fino a trovare la posizione del carattere '.' o, nel caso non fosse presente, fino all'inizio della stringa.
@@ -425,7 +432,7 @@ void modifyContact(Contatto *cont) {
             getInput(cont->nome, LENGTH + 1, NOME, NAME_LABEL);
             break;
         case 2:
-            getInput(cont->cognome, LENGTH + 1, NOME, SRNAME_LABEL);
+            getInput(cont->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
             break;
         case 3:
             getInput(cont->telefono, LENGTH + 1, TELEFONO, TEL_LABEL);
