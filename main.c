@@ -89,6 +89,7 @@ typedef struct {
 void start();
 int menu();
 Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag);
+void checkAlloc(Contatto *alloc);
 void newContact(Contatto *new);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
@@ -159,22 +160,26 @@ void start_proto() {
 void start() {
 
     static Contatto *contacts_array = NULL;
-    static int currentAlloc = 0, updateAlloc = 1;
+    static int currentAlloc = 0; // Numero di record correntemente allocati (lunghezza attuale dell'array).
+    static int updateAlloc = 1; // Numero di record alla prossima modifica dell'array.
     int choice;
+    int i;
+
+    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false); // Inizializza l'array dinamico allocando lo spazio per un contatto.
 
     do {
         choice = menu();
 
         switch (choice) {
             case 1:
-                contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
-                newContact(&contacts_array[0]);
+                contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+                newContact(&contacts_array[currentAlloc - 1]);
+                updateAlloc++; // Aumenta la conta dei record di 1 per il prossimo inserimento.
                 break;
             case 2:
-                printContact(&contacts_array[0]);
-                break;
+                for(i=0; i<currentAlloc; i++)
+                    printContact(&contacts_array[i]);
             case 3:
-                modifyContact(&contacts_array[0]);
                 break;
         }
     } while(choice != MENU_MAX);
@@ -209,31 +214,52 @@ int menu() {
 /**
  * Gestisce l'allocazione e la riallocazione di un array dinamico di tipo Contatto.
  *
- * @param currAl Puntatore alla lunghezza attuale dell'array dinamico.
- * @param updAl Puntatore alla nuova lunghezza dell'array dinamico.
- * @param cont_array Puntatore all'array dinamico.
+ * @param currAl Puntatore alla variabile che indica la lunghezza attuale dell'array dinamico.
+ * @param updAl Puntatore alla variabile che indica la nuova lunghezza desiderata dell'array dinamico.
+ * @param cont_array Puntatore all'array dinamico, utile in caso di riallocazione.
  * @param flag Se false alloca, se true rialloca.
- * @return Puntatore
+ * @return Puntatore all'array dinamico allocato o riallocato.
  */
 Contatto *allocate(int *currAl, int *updAl, Contatto *cont_array, _Bool flag) {
+    Contatto *new_alloc = NULL;
     int buffer;
 
     switch (flag) {
+        /* Allocazione */
         case false:
             *currAl = *updAl;
-            return (Contatto *) malloc (*currAl * sizeof(Contatto));
-            break;
+            new_alloc = (Contatto *) malloc (*currAl * sizeof(Contatto));
+            checkAlloc(new_alloc);
+            return new_alloc;
+        /* Riallocazione */
         case true:
             if (*updAl > *currAl) {
                 buffer = *updAl - *currAl;
                 *currAl += buffer;
-                return (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+                new_alloc = (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+                checkAlloc(new_alloc);
+                return new_alloc;
             } else if (*updAl < *currAl) {
                 buffer = *currAl - *updAl;
                 *currAl -= buffer;
-                return (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
-            } else
+                new_alloc = (Contatto *) realloc (cont_array, *currAl * sizeof(Contatto));
+                checkAlloc(new_alloc);
+                return new_alloc;
+            } else {
                 return cont_array;
+            }
+    }
+}
+
+/**
+ * Controlla se l'allocazione di memoria è andata a buon fine. Se così non fosse termina il programma.
+ *
+ * @param cont_array Puntatore alla nuova allocazione.
+ */
+void checkAlloc(Contatto *alloc) {
+    if (alloc == NULL) {
+        printf("Errore: allocazione non riuscita.");
+        exit(-1);
     }
 }
 
