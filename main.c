@@ -1,47 +1,3 @@
-/* Implementare una rubrica telefonica seguendo le seguenti specifiche:
-
-0) Definire una enumerazione 'TipologiaContatto' che permetta di utilizzare i seguenti valori: lavoro, famiglia, amici,
- altri.
-1) Definire una struttura 'Contatto' contenente:
-- nome, cognome, numero di telefono, indirizzo email, tipologia contatto
-2) Implementare una funzione o procedura che acquisisca i campi di un Contatto e restituisca tale contatto. Effettuare
- i controlli sull'input:
-- nome (non vuoto, non deve contenere cifre)
-- cognome (non vuoto, non deve contenere cifre)
-- numero di telefono (non vuoto, non deve contenere simboli o lettere)
-- indirizzo email (deve contenere almeno un carattere prima della chiocciola, almeno un carattere chiocciola, almeno un
- carattere dopo la chiocchiola, un punto e un dominio come com o it)
-- tipologia (deve essere richiesto in modo semplice per l'utente, ad esempio usando un menu)
-3) Implementare una procedura che stampi in modo chiaro e ordinato tutti i dati del contatto
-4) Implementare una funzione o procedura che permetta la modifica di un contatto. Riceverà come parametro un contatto,
- lo stamperà e chiederà quale campo deve essere modificato. Una volta inserito il nuovo valore, a seconda dei casi il
- contatto dovrà essere restituito al chiamante o meno (dipende se si utilizza una procedura o una funzione).
-5) Implementare una funzione che inizializzi un vettore dinamico. Essa dovrà allocare lo spazio per un contatto e
- restituire l'indirizzo di memoria relativo se l'allocazione è andata a buon fine. Altrimenti il programma terminerà
- comunicando all'utente tale malfunzionamento.
-6) Implementare la funzione di inserimento seguendo la logica seguente: passo il contatto, aumento lo spazio del
- vettore dinamico per contenere un nuovo elemento e a questo punto inserisco il nuovo contatto seguendo l'ordine
- alfabetico. Si possono presentare due casi: inserimento in coda, inserimento non in coda. Se in coda non dovremo
- far altro che inserire il contatto nell'ultima (e nuova) posizione, altrimenti una volta trovato il contatto
- successivo in ordine alfabetico dovremo far scorrere tutti i contatti di una posizione e inserire il nuovo contatto
- nella corretta posizione. Al termine delle operazioni ricordarsi di tenere traccia dell'eventuale cambio di valore del
- puntatore al vettore dinamico.
-7) Implementare la funzione di eliminazione offrendo le seguenti possibilità:
-- eliminare tutta la rubrica
-- eliminare un contatto con un certo indice
-- eliminare tutti i contatti con un certo nome o cognome
-- elininare una categoria di contatti
- 8) Aggiungere alle funzionalità del programma la ricerca dei contatti offrendo le seguenti possibilità:
-- ricerca mediante nome (o parte del nome)
-- ricerca mediante cognome (o parte del cognome)
-- ricerca mediante mail (o parte del mail)
-- ricerca mediante numero
-- ricerca mediante categoria
-
-In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal vettore, se ad esempio abbiamo un
- vettore di 3 contatti A, B e C e dobbiamo eliminare B sposteremo C in B e riallocheremo lo spazio eliminando un
- elemento (l'ultimo). Ricordarsi sempre di restituire il puntatore al vettore dinamico. */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -93,6 +49,7 @@ typedef struct {
 } Delete;
 
 void start();
+Delete remFromArray(Contatto *cont_arr, int *curr_al);
 void printThemAll(Contatto *cont_arr, int *curr_al);
 void searchContact(Contatto *cont_arr, int *curr_al);
 void searchByCategory(Contatto *cont_arr, int *curr_al);
@@ -111,16 +68,101 @@ TipologiaContatto getGroup(char label[]);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
 void printContact(Contatto *p_cont);
 void modifyContact(Contatto *p_cont);
+
+int main() {
+    start();
+
+    Contatto nuovoContatto = {"andriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
+    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
+/*
+    char str[60];
+
+    concat(str, nuovoContatto.nome, nuovoContatto.cognome);
+    printf("%s", str);
+*/
+/*
+    newContact(&nuovoContatto);
+    printContact(&nuovoContatto);
+    modifyContact(&nuovoContatto);
+    printContact(&nuovoContatto);
+*/
+
+    return 0;
+}
+
+/**
+ * Avvia il programma e gestisce la scelta effettuata nel menu.
+ */
+void start() {
+    Contatto *contacts_array = NULL;
+    int currentAlloc; // Numero di record correntemente allocati (lunghezza attuale dell'array).
+    int updateAlloc; // Numero di record alla prossima modifica dell'array.
+    int choice;
+    Delete removed;
+
+    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false); // Inizializza l'array dinamico allocando lo spazio per un contatto.
+
+    do {
+        choice = menu("\nRUBRICA TELEFONICA\n"
+                      "1) Aggiungi\n"
+                      "2) Modifica\n"
+                      "3) Rimuovi\n"
+                      "4) Ricerca\n"
+                      "5) Stampa tutti\n"
+                      "6) Esci\n",
+                      MENU_MIN, MENU_MAX);
+
+        switch (choice) {
+            case 1:
+                contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+                newContact(&contacts_array[currentAlloc - 1]);
+                sortArray(contacts_array, &currentAlloc);
+                break;
+            case 2:
+                break;
+            case 3:
+                removed = remFromArray(contacts_array, &currentAlloc);
+                if (removed.alert) {
+                    free(contacts_array);
+                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+                } else {
+                    updateAlloc = currentAlloc - removed.counter;
+                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+                }
+                break;
+            case 4:
+                searchContact(contacts_array, &currentAlloc);
+                break;
+            case 5:
+                printThemAll(contacts_array, &currentAlloc);
+                break;
+        }
+    } while(choice != MENU_MAX);
+}
+
+/**
+ * Gestisce l'eliminazione di uno o più contatti secondo diversi criteri. Attenzione: la funzione si occupa solamente
+ * di eliminare i campi desiderati dall'array senza effettuare alcuna riallocazione. La riallocazione verrà fatta
+ * all'interno della funzione start in base ai valori di ritorno di questa funzione.
+ *
+ * NB: nella funzione sono presenti ripetizioni che si sarebbero potute evitare implementando funzioni apposite. Così
+ * non piace nemmeno a me, se poi ho tempo per il refactoring la sistemo.
+ *
+ * @param cont_arr Array dei contatti.
+ * @param curr_al Dimensione attuale dell'array dei contatti.
+ * @return Viene ritornata una variabile di tipo Delete. Int counter indica il numero di record che sono stati
+ * eliminati mentre il flag alert indica se tutti i campi dell'array sono stati eliminati o meno (true sì, false no).
+ */
 Delete remFromArray(Contatto *cont_arr, int *curr_al) {
-    int i = 0, j = 0;
-    int choice = 0, remIndx = 0;
+    int i, j;
+    int choice, remIndx;
     char remStr[LENGTH + 1];
     Delete removed;
 
     removed.alert = false;
     removed.counter = 0;
 
-    choice = menu("RIMUOVI\n"
+    choice = menu("\nRIMUOVI\n"
                   "1) Rimuovi contatti con un certo nome\n"
                   "2) Rimuovi contatti con un certo cognome\n"
                   "3) Rimuovi una categoria di contatti\n"
@@ -141,11 +183,10 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                 }
             }
 
-            /* Se i è uguale a 1 viene mandato un segnale di allerta in quanto la riallocazione non funzionerà
-             * perché l'array dei contatti è vuoto (è stato eliminato l'ultimo elemento rimasto). Al posto che una
-             * riallocazione si procederà con la liberazione della memoria allocata per l'array dinamico e con una
-             * nuova allocazione. */
-            if (i == 1)
+            /* Se la differenza tra la dimensione dell'array e il numero dei campi eliminati è uguale a 0 viene
+             * mandato un segnale di allerta e, nella funzione start, al posto che una riallocazione si procederà
+             * a liberare la memoria allocata per l'array dinamico (free) e ad una nuova allocazione (malloc). */
+            if (*curr_al - removed.counter == 0)
                 removed.alert = true;
 
             return removed;
@@ -161,14 +202,14 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                 }
             }
 
-            if (i == 1)
+            if (*curr_al - removed.counter == 0)
                 removed.alert = true;
 
             return removed;
         case 3:
             choice = menu("Quale categoria?\n"
                           "1) Lavoro\n"
-                          "1) Famiglia\n"
+                          "2) Famiglia\n"
                           "3) Amici\n"
                           "4) Altro\n",
                           LAVORO + 1, ALTRO + 1);
@@ -184,7 +225,7 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                 }
             }
 
-            if (i == 1)
+            if (*curr_al - removed.counter == 0)
                 removed.alert = true;
 
             return removed;
@@ -193,17 +234,18 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
             scanf("%d", &remIndx);
             ignoreInputUntil('\n');
 
-            /* Il ciclo seguente potrebbe essere ottimizzato utilizzando un while o un do-while onde evitare di
-             * scorrere tutto l'array. Per ora lascio così, poi se ho tempo modifico. */
+            /* Questo ciclo potrebbe essere ottimizzato o addirittura rimosso per evitare di dover scorrere tutto
+             * l'array. Per ora lo lascio così, poi se ho tempo per il refactoring lo faccio. */
             for(i = 0; i < *curr_al; i++) {
                 if (i == remIndx) {
-                    for (j = i; j < *curr_al; j++)
+                    for (j = i; j < *curr_al; j++) {
                         cont_arr[j] = cont_arr[j + 1];
+                    }
                     removed.counter++;
                 }
             }
 
-            if (i == 1)
+            if (*curr_al - removed.counter == 0)
                 removed.alert = true;
 
             return removed;
@@ -211,71 +253,6 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
             removed.alert = true;
             return removed;
     }
-}
-
-int main() {
-    start();
-
-    Contatto nuovoContatto = {"andriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
-    Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
-
-    return 0;
-}
-
-/**
- * Avvia il programma e gestisce la scelta effettuata nel menu.
- */
-void start() {
-    static Contatto *contacts_array = NULL;
-    static int currentAlloc = 0; // Numero di record correntemente allocati (lunghezza attuale dell'array).
-    static int updateAlloc = 1; // Numero di record alla prossima modifica dell'array.
-    int choice;
-    Delete removed;
-
-    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false); // Inizializza l'array dinamico allocando lo spazio per un contatto.
-
-    do {
-        choice = menu("RUBRICA TELEFONICA\n"
-                      "1) Aggiungi\n"
-                      "2) Modifica\n"
-                      "3) Rimuovi\n"
-                      "4) Ricerca\n"
-                      "5) Stampa tutti\n"
-                      "6) Esci\n",
-                      MENU_MIN, MENU_MAX);
-
-        switch (choice) {
-            case 1:
-                contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
-                newContact(&contacts_array[currentAlloc - 1]);
-                sortArray(contacts_array, &currentAlloc);
-                break;
-            case 2:
-                break;
-            case 3:
-                removed.counter = 0;
-                removed.alert = false;
-                removed = remFromArray(contacts_array, &currentAlloc);
-                if (removed.alert) {
-                    free(contacts_array);
-                    currentAlloc = 0;
-                    updateAlloc = 1;
-                    contacts_array = NULL;
-                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
-                } else {
-                    updateAlloc = currentAlloc - removed.counter;
-                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
-                }
-                printf("%d", removed.counter);
-                break;
-            case 4:
-                searchContact(contacts_array, &currentAlloc);
-                break;
-            case 5:
-                printThemAll(contacts_array, &currentAlloc);
-                break;
-        }
-    } while(choice != MENU_MAX);
 }
 
 /**
@@ -303,7 +280,7 @@ void searchContact(Contatto *cont_arr, int *curr_al) {
     int choice, i;
     char searchString[LENGTH + 1];
 
-    choice = menu("RICERCA PER\n"
+    choice = menu("\nRICERCA PER\n"
                   "1) Nome\n"
                   "2) Cognome\n"
                   "3) E-mail\n"
@@ -481,6 +458,7 @@ Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag) {
     switch (flag) {
         /* Allocazione */
         case false:
+            *upd_al = 1;
             *curr_al = *upd_al;
             new_alloc = (Contatto *) malloc (*curr_al * sizeof(Contatto));
             checkAlloc(new_alloc);
