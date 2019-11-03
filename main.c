@@ -42,15 +42,16 @@ typedef struct {
 } Response;
 
 /* Struttura utile nella funzione di rimozione di contatti dall'array dinamico. Vengono ritornati il numero dei record
- * eliminati e una variabile di flag nel caso in cui l'array sia stato svuotato totalmente. */
+ * eliminati e una variabile di flag nel caso in cui l'array sia stato svuotato totalmente. A seguito dell'aggiunta
+ * del flag *is_empty nella funzione start, alert risulta ridondante. */
 typedef struct {
     int counter;
     _Bool alert;
 } Delete;
 
 void start();
-Delete remFromArray(Contatto *cont_arr, int *curr_al);
-void printThemAll(Contatto *cont_arr, int *curr_al);
+Delete remFromArray(Contatto *cont_arr, int *curr_al, _Bool *is_empty);
+void printThemAll(Contatto *cont_arr, int *curr_al, _Bool isEmpty);
 void searchContact(Contatto *cont_arr, int *curr_al);
 void searchByCategory(Contatto *cont_arr, int *curr_al);
 void sortArray(Contatto *cont_arr, int *curr_al);
@@ -58,7 +59,7 @@ void concat(char *conc_here, char *p_str1, char *p_str2);
 int menu(char str[], int min, int max);
 Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag);
 void checkAlloc(Contatto *p_alloc);
-void newContact(Contatto *p_new);
+void newContact(Contatto *p_new, _Bool *is_empty);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
 Response validator(char str[], Controllo ctrl);
@@ -95,10 +96,11 @@ int main() {
  */
 void start() {
     Contatto *contacts_array = NULL;
+    Delete removed;
     int currentAlloc; // Numero di record correntemente allocati (lunghezza attuale dell'array).
     int updateAlloc; // Numero di record alla prossima modifica dell'array.
     int choice;
-    Delete removed;
+    _Bool isEmpty = true; // Flag di verifica array pieno/vuoto
 
     contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false); // Inizializza l'array dinamico allocando lo spazio per un contatto.
 
@@ -115,13 +117,13 @@ void start() {
         switch (choice) {
             case 1:
                 contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
-                newContact(&contacts_array[currentAlloc - 1]);
+                newContact(&contacts_array[currentAlloc - 1], &isEmpty);
                 sortArray(contacts_array, &currentAlloc);
                 break;
             case 2:
                 break;
             case 3:
-                removed = remFromArray(contacts_array, &currentAlloc);
+                removed = remFromArray(contacts_array, &currentAlloc, &isEmpty);
                 if (removed.alert) {
                     free(contacts_array);
                     contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
@@ -134,7 +136,7 @@ void start() {
                 searchContact(contacts_array, &currentAlloc);
                 break;
             case 5:
-                printThemAll(contacts_array, &currentAlloc);
+                printThemAll(contacts_array, &currentAlloc, isEmpty);
                 break;
         }
     } while(choice != MENU_MAX);
@@ -150,10 +152,11 @@ void start() {
  *
  * @param cont_arr Array dei contatti.
  * @param curr_al Dimensione attuale dell'array dei contatti.
+ * @param isEmpty Puntatore al flag che indica se l'array è vuoto o meno.
  * @return Viene ritornata una variabile di tipo Delete. Int counter indica il numero di record che sono stati
  * eliminati mentre il flag alert indica se tutti i campi dell'array sono stati eliminati o meno (true sì, false no).
  */
-Delete remFromArray(Contatto *cont_arr, int *curr_al) {
+Delete remFromArray(Contatto *cont_arr, int *curr_al, _Bool *is_empty) {
     int i, j, catCounter;
     int choice, remIndx;
     char remStr[LENGTH + 1];
@@ -186,8 +189,10 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
             /* Se la differenza tra la dimensione dell'array e il numero dei campi eliminati è uguale a 0 viene
              * mandato un segnale di allerta e, nella funzione start, al posto che una riallocazione si procederà
              * a liberare la memoria allocata per l'array dinamico (free) e ad una nuova allocazione (malloc). */
-            if (*curr_al - removed.counter == 0)
+            if (*curr_al - removed.counter == 0) {
                 removed.alert = true;
+                *is_empty = true;
+            }
 
             return removed;
         case 2:
@@ -202,8 +207,10 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                 }
             }
 
-            if (*curr_al - removed.counter == 0)
+            if (*curr_al - removed.counter == 0) {
                 removed.alert = true;
+                *is_empty = true;
+            }
 
             return removed;
         case 3:
@@ -215,15 +222,6 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                           LAVORO, ALTRO);
 
             for(i = 0; i < *curr_al; i++) {
-                if (strcmp(remStr, cont_arr[i].cognome) == 0) {
-                    for (j = i; j < *curr_al; j++)
-                        cont_arr[j] = cont_arr[j + 1];
-                    removed.counter++;
-                    i--;
-                }
-            }
-
-            for(i = 0; i < *curr_al; i++) {
                 if (cont_arr[i].gruppo == choice) {
                     for (j = i; j < *curr_al; j++)
                         cont_arr[j] = cont_arr[j + 1];
@@ -232,8 +230,10 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                 }
             }
 
-            if (*curr_al - removed.counter == 0)
+            if (*curr_al - removed.counter == 0) {
                 removed.alert = true;
+                *is_empty = true;
+            }
 
             return removed;
         case 4:
@@ -254,12 +254,15 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                 }
             }
 
-            if (*curr_al - removed.counter == 0)
+            if (*curr_al - removed.counter == 0) {
                 removed.alert = true;
+                *is_empty = true;
+            }
 
             return removed;
         case 5:
             removed.alert = true;
+            *is_empty = true;
             return removed;
     }
 }
@@ -269,15 +272,21 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
  *
  * @param cont_arr Array dei contatti.
  * @param curr_al Dimensione dell'array dei contatti.
+ * @param isEmpty Flag che indica se l'array è vuoto o meno.
  */
-void printThemAll(Contatto *cont_arr, int *curr_al) {
+void printThemAll(Contatto *cont_arr, int *curr_al, _Bool isEmpty) {
     int i;
 
-    printf("LISTA DEI CONTATTI:\n");
+    if (!isEmpty) {
+        printf("LISTA DEI CONTATTI:\n");
 
-    for(i = 0; i < *curr_al; i++) {
-        printf("[%d]\n", i + 1);
-        printContact(&cont_arr[i]);
+        for (i = 0; i < *curr_al; i++) {
+            printf("[%d]\n", i + 1);
+            printContact(&cont_arr[i]);
+        }
+    } else {
+        printf("Non è presente alcun contatto.");
+        ignoreInputUntil('\n');
     }
 }
 
@@ -511,13 +520,15 @@ void checkAlloc(Contatto *p_alloc) {
  * Prende in ingresso un nuovo contatto e acquisisce in input tutti i campi.
  *
  * @param p_new Puntatore al nuovo contatto.
+ * @param isEmpty Puntatore al flag che indica se l'array è vuoto o meno.
  */
-void newContact(Contatto *p_new) {
+void newContact(Contatto *p_new, _Bool *is_empty) {
     getInput(p_new->nome, LENGTH + 1, NOME, NAME_LABEL);
     getInput(p_new->cognome, LENGTH + 1, COGNOME, SRNAME_LABEL);
     getInput(p_new->telefono, TEL_LENGTH + 1, TELEFONO, TEL_LABEL);
     getInput(p_new->email, LENGTH + 1, EMAIL, EMAIL_LABEL);
     p_new->gruppo = getGroup(GROUP_LABEL);
+    *is_empty = false;
 }
 
 /**
