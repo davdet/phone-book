@@ -358,7 +358,6 @@ int menu(char str[], int min, int max) {
         ignoreInputUntil('\n');
 
         isOk = checkRange(choice, min, max, "Errore: scelta non valida.");
-
     } while(!isOk);
 
     return choice;
@@ -506,8 +505,8 @@ Response validator(char str[], Controllo ctrl) {
 
     switch(ctrl) {
 
-        case 0:
-        case 1:
+        case NOME:
+        case COGNOME:
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del nome o del cognome sono presenti caratteri diversi dalle lettere
                  * dell'alfabeto latino, viene restituito il codice di errore -2. */
@@ -520,7 +519,7 @@ Response validator(char str[], Controllo ctrl) {
             }
             break;
 
-        case 2:
+        case TELEFONO:
             while(strLocal[i] != '\0') {
                 /* Se all'interno della stringa del numero di telefono sono presenti caratteri diversi dalle cifre,
                  * viene restituito il codice di errore -3. */
@@ -533,7 +532,7 @@ Response validator(char str[], Controllo ctrl) {
             }
             break;
 
-        case 3:
+        case EMAIL:
             while(strLocal[i] != '@' && i != j) // Cicla fino a trovare la posizione del carattere '@' o, nel caso non fosse presente, fino alla fine della stringa.
                 i++;
             while(strLocal[j] != '.' && j != -1) // Cicla fino a trovare la posizione del carattere '.' o, nel caso non fosse presente, fino all'inizio della stringa.
