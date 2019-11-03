@@ -54,8 +54,10 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #define MODIF_MAX 5 // Valore massimo per la scelta durante la modifica del contatto.
 #define MENU_MIN 1 // Valore minimo per la scelta nel menu.
 #define MENU_MAX 6 // Valore massimo per la scelta nel menu.
-#define SEARCH_MIN 1 // Valore massimo per la scelta nel menu di ricerca.
+#define SEARCH_MIN 1 // Valore minimo per la scelta nel menu di ricerca.
 #define SEARCH_MAX 5 // Valore massimo per la scelta nel menu di ricerca.
+#define REM_MIN 1 // Valore minimo per la scelta nel menu di rimozione.
+#define REM_MAX 5 // Valore massimo per la scelta nel menu di rimozione.
 
 /* Definizione delle label per l'inserimento dei vari campi in maniera tale da poterle modificare senza dover
  * andare a toccare il codice. */
@@ -83,12 +85,17 @@ typedef struct {
     char message[MESSAGE];
 } Response;
 
+/* Struttura utile nella funzione di rimozione di contatti dall'array dinamico. Vengono ritornati il numero dei record
+ * eliminati e una variabile di flag nel caso in cui l'array sia stato svuotato totalmente. */
+typedef struct {
+    int counter;
+    _Bool alert;
+} Delete;
+
 void start();
 void printThemAll(Contatto *cont_arr, int *curr_al);
 void searchContact(Contatto *cont_arr, int *curr_al);
 void searchByCategory(Contatto *cont_arr, int *curr_al);
-void printSearchResults(Contatto *cont_arr, char str[], int *curr_al);
-//void addContact(Contatto *cont_arr, int *curr_al, int *upd_al);
 void sortArray(Contatto *cont_arr, int *curr_al);
 void concat(char *conc_here, char *p_str1, char *p_str2);
 int menu(char str[], int min, int max);
@@ -104,24 +111,113 @@ TipologiaContatto getGroup(char label[]);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
 void printContact(Contatto *p_cont);
 void modifyContact(Contatto *p_cont);
+Delete remFromArray(Contatto *cont_arr, int *curr_al) {
+    int i = 0, j = 0;
+    int choice = 0, remIndx = 0;
+    char remStr[LENGTH + 1];
+    Delete removed;
+
+    removed.alert = false;
+    removed.counter = 0;
+
+    choice = menu("RIMUOVI\n"
+                  "1) Rimuovi contatti con un certo nome\n"
+                  "2) Rimuovi contatti con un certo cognome\n"
+                  "3) Rimuovi una categoria di contatti\n"
+                  "4) Rimuovi un contatto con un certo indice\n"
+                  "5) Elimina tutta la rubrica\n",
+                  REM_MIN, REM_MAX);
+
+    switch (choice) {
+        case 1:
+            printf("Inserisci il nome dei contatti che vuoi eliminare: ");
+            readLine(remStr, LENGTH + 1);
+            for(i = 0; i < *curr_al; i++) {
+                if (strcmp(remStr, cont_arr[i].nome) == 0) {
+                    for (j = i; j < *curr_al; j++)
+                        cont_arr[j] = cont_arr[j + 1];
+                    removed.counter++;
+                    i--;
+                }
+            }
+
+            /* Se i è uguale a 1 viene mandato un segnale di allerta in quanto la riallocazione non funzionerà
+             * perché l'array dei contatti è vuoto (è stato eliminato l'ultimo elemento rimasto). Al posto che una
+             * riallocazione si procederà con la liberazione della memoria allocata per l'array dinamico e con una
+             * nuova allocazione. */
+            if (i == 1)
+                removed.alert = true;
+
+            return removed;
+        case 2:
+            printf("Inserisci il cognome dei contatti che vuoi eliminare: ");
+            readLine(remStr, LENGTH + 1);
+            for(i = 0; i < *curr_al; i++) {
+                if (strcmp(remStr, cont_arr[i].cognome) == 0) {
+                    for (j = i; j < *curr_al; j++)
+                        cont_arr[j] = cont_arr[j + 1];
+                    removed.counter++;
+                    i--;
+                }
+            }
+
+            if (i == 1)
+                removed.alert = true;
+
+            return removed;
+        case 3:
+            choice = menu("Quale categoria?\n"
+                          "1) Lavoro\n"
+                          "1) Famiglia\n"
+                          "3) Amici\n"
+                          "4) Altro\n",
+                          LAVORO + 1, ALTRO + 1);
+
+            choice--;
+
+            for(i = 0; i < *curr_al; i++) {
+                if (cont_arr[i].gruppo == choice) {
+                    for (j = i; j < *curr_al; j++)
+                        cont_arr[j] = cont_arr[j + 1];
+                    removed.counter++;
+                    i--;
+                }
+            }
+
+            if (i == 1)
+                removed.alert = true;
+
+            return removed;
+        case 4:
+            printf("Inserisci l'indice del contatto che vuoi eliminare: ");
+            scanf("%d", &remIndx);
+            ignoreInputUntil('\n');
+
+            /* Il ciclo seguente potrebbe essere ottimizzato utilizzando un while o un do-while onde evitare di
+             * scorrere tutto l'array. Per ora lascio così, poi se ho tempo modifico. */
+            for(i = 0; i < *curr_al; i++) {
+                if (i == remIndx) {
+                    for (j = i; j < *curr_al; j++)
+                        cont_arr[j] = cont_arr[j + 1];
+                    removed.counter++;
+                }
+            }
+
+            if (i == 1)
+                removed.alert = true;
+
+            return removed;
+        case 5:
+            removed.alert = true;
+            return removed;
+    }
+}
 
 int main() {
     start();
 
-    Contatto nuovoContatto = {"anrdriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
+    Contatto nuovoContatto = {"andriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
     Contatto nuovoContatto2 = {"alberto", "barabba", "3221134", "asdferw@hotmail.com", AMICI};
-/*
-    char str[60];
-
-    concat(str, nuovoContatto.nome, nuovoContatto.cognome);
-    printf("%s", str);
-*/
-/*
-    newContact(&nuovoContatto);
-    printContact(&nuovoContatto);
-    modifyContact(&nuovoContatto);
-    printContact(&nuovoContatto);
-*/
 
     return 0;
 }
@@ -134,6 +230,7 @@ void start() {
     static int currentAlloc = 0; // Numero di record correntemente allocati (lunghezza attuale dell'array).
     static int updateAlloc = 1; // Numero di record alla prossima modifica dell'array.
     int choice;
+    Delete removed;
 
     contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false); // Inizializza l'array dinamico allocando lo spazio per un contatto.
 
@@ -149,7 +246,6 @@ void start() {
 
         switch (choice) {
             case 1:
-                //addContact(contacts_array, &currentAlloc, &updateAlloc);
                 contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
                 newContact(&contacts_array[currentAlloc - 1]);
                 sortArray(contacts_array, &currentAlloc);
@@ -157,6 +253,20 @@ void start() {
             case 2:
                 break;
             case 3:
+                removed.counter = 0;
+                removed.alert = false;
+                removed = remFromArray(contacts_array, &currentAlloc);
+                if (removed.alert) {
+                    free(contacts_array);
+                    currentAlloc = 0;
+                    updateAlloc = 1;
+                    contacts_array = NULL;
+                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+                } else {
+                    updateAlloc = currentAlloc - removed.counter;
+                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+                }
+                printf("%d", removed.counter);
                 break;
             case 4:
                 searchContact(contacts_array, &currentAlloc);
@@ -290,14 +400,6 @@ void searchByCategory(Contatto *cont_arr, int *curr_al) {
     }
 }
 
-/*************
-void addContact(Contatto *cont_arr, int *curr_al, int *upd_al) {
-    cont_arr = allocate(curr_al, upd_al, cont_arr, true);
-    newContact(&cont_arr[*curr_al - 1]);
-    sortArray(cont_arr, curr_al);
-}
-***********/
-
 /**
  * Ordina alfabeticamente l'array dei contatti: prima il nome, poi il cognome.
  *
@@ -389,14 +491,14 @@ Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag) {
                 buffer = *upd_al - *curr_al;
                 *curr_al += buffer;
                 new_alloc = (Contatto *) realloc (cont_arr, *curr_al * sizeof(Contatto));
-                *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
+                *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 return new_alloc;
             } else if (*upd_al < *curr_al) {
                 buffer = *curr_al - *upd_al;
                 *curr_al -= buffer;
                 new_alloc = (Contatto *) realloc (cont_arr, *curr_al * sizeof(Contatto));
-                *upd_al -= 1; // Decrementa la conta dei record di 1 per il prossimo inserimento.
+                *upd_al += 1; // Incrementa la conta dei record di 1 per il prossimo inserimento.
                 checkAlloc(new_alloc);
                 return new_alloc;
             } else {
@@ -487,7 +589,13 @@ void ignoreInputUntil(char endCh) {
 Response validator(char str[], Controllo ctrl) {
     Response res;
     int i, j, k;
-    char strLocal[strlen(str) + 1]; // Stringa locale dove verrà copiata la stringa ricevuta come parametro per essere elaborata dai controlli.
+
+    /* Stringa locale dove verrà copiata la stringa ricevuta come parametro per essere elaborata dai controlli.
+     * Inizialmente si è pensato di implementare la funzione in questo modo per permettere all'utente di inserire i
+     * campi dei contatti sia utilizzando le maiuscole che le minuscole. Successivamente, per ragioni di ordinamento,
+     * si è deciso di convertire tutti gli input in lowercase, pertanto questa stringa di supporto come anche le
+     * successive chiamate a strcpy e toLowercase risultano ora ridondanti. */
+    char strLocal[strlen(str) + 1];
 
     strcpy(strLocal, str); // Copia della stringa ricevuta come parametro.
     toLowercase(strLocal); // strLocal viene convertita il lowercase per facilitare i controlli
@@ -632,6 +740,7 @@ void getInput(char *in_str, int length, Controllo ctrl, char label[]) {
     do {
         printf("%s: ", label);
         readLine(in_str, length);
+        toLowercase(in_str);
         check = validator(in_str, ctrl);
 
         if (check.code != 0) {
@@ -688,13 +797,7 @@ _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]) {
  * @param p_cont Puntatore al contatto da stampare a video.
  */
 void printContact(Contatto *p_cont) {
-    printf("Nome: %s\n"
-           "Cognome: %s\n"
-           "Telefono: %s\n"
-           "E-mail: %s\n"
-           "Gruppo: ",
-           p_cont->nome, p_cont->cognome, p_cont->telefono,
-           p_cont->email);
+    printf("%s %s\n%s - %s\nGruppo: ", p_cont->nome, p_cont->cognome, p_cont->telefono, p_cont->email);
 
     switch (p_cont->gruppo) {
         case LAVORO:

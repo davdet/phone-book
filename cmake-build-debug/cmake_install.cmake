@@ -1,4 +1,4 @@
-# Install script for directory: /home/d3/Dropbox/docs/TNV/191030_progetto/rubrica_telefonica
+# Install script for directory: /home/d3/Dropbox/docs/TNV/191030_progetto/phone-book
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/d3/Dropbox/docs/TNV/191030_progetto/rubrica_telefonica/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
