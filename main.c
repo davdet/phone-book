@@ -53,7 +53,9 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #define MODIF_MIN 1 // Valore minimo per la scelta durante la modifica del contatto.
 #define MODIF_MAX 5 // Valore massimo per la scelta durante la modifica del contatto.
 #define MENU_MIN 1 // Valore minimo per la scelta nel menu.
-#define MENU_MAX 5 // Valore massimo per la scelta nel menu.
+#define MENU_MAX 6 // Valore massimo per la scelta nel menu.
+#define SEARCH_MIN 1 // Valore massimo per la scelta nel menu di ricerca.
+#define SEARCH_MAX 5 // Valore massimo per la scelta nel menu di ricerca.
 
 /* Definizione delle label per l'inserimento dei vari campi in maniera tale da poterle modificare senza dover
  * andare a toccare il codice. */
@@ -62,10 +64,6 @@ In tutti i casi dovremo sempre stare attenti a modificare lo spazio occupato dal
 #define TEL_LABEL "Telefono"
 #define EMAIL_LABEL "E-mail"
 #define GROUP_LABEL "\nGruppo:\n1) Lavoro\n2) Famiglia\n3) Amici\n4) Altro\n"
-
-/* Definizione dell'istruzione per la pulizia della shell, in maniera tale da poterla commentare/decommentare
- * in un solo posto. */
-#define CLRSCR printf("\033[H\033[J");
 
 typedef enum {LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
 typedef enum {NOME, COGNOME, TELEFONO, EMAIL} Controllo; // Enum utilizzata dalla funzione validator
@@ -86,10 +84,14 @@ typedef struct {
 } Response;
 
 void start();
-//void addContact(Contatto *cont_array, int *curr_al, int *upd_al);
+void printThemAll(Contatto *cont_arr, int *curr_al);
+void searchContact(Contatto *cont_arr, int *curr_al);
+void searchByCategory(Contatto *cont_arr, int *curr_al);
+void printSearchResults(Contatto *cont_arr, char str[], int *curr_al);
+//void addContact(Contatto *cont_arr, int *curr_al, int *upd_al);
 void sortArray(Contatto *cont_arr, int *curr_al);
 void concat(char *conc_here, char *p_str1, char *p_str2);
-int menu();
+int menu(char str[], int min, int max);
 Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag);
 void checkAlloc(Contatto *p_alloc);
 void newContact(Contatto *p_new);
@@ -104,7 +106,6 @@ void printContact(Contatto *p_cont);
 void modifyContact(Contatto *p_cont);
 
 int main() {
-
     start();
 
     Contatto nuovoContatto = {"anrdriy", "shevchenko", "029374", "ofisg@invse.com", LAVORO};
@@ -129,17 +130,22 @@ int main() {
  * Avvia il programma e gestisce la scelta effettuata nel menu.
  */
 void start() {
-
     static Contatto *contacts_array = NULL;
     static int currentAlloc = 0; // Numero di record correntemente allocati (lunghezza attuale dell'array).
     static int updateAlloc = 1; // Numero di record alla prossima modifica dell'array.
     int choice;
-    int i;
 
     contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false); // Inizializza l'array dinamico allocando lo spazio per un contatto.
 
     do {
-        choice = menu();
+        choice = menu("RUBRICA TELEFONICA\n"
+                      "1) Aggiungi\n"
+                      "2) Modifica\n"
+                      "3) Rimuovi\n"
+                      "4) Ricerca\n"
+                      "5) Stampa tutti\n"
+                      "6) Esci\n",
+                      MENU_MIN, MENU_MAX);
 
         switch (choice) {
             case 1:
@@ -149,19 +155,146 @@ void start() {
                 sortArray(contacts_array, &currentAlloc);
                 break;
             case 2:
+                break;
             case 3:
-                for(i=0; i<currentAlloc; i++)
-                    printContact(&contacts_array[i]);
+                break;
+            case 4:
+                searchContact(contacts_array, &currentAlloc);
+                break;
+            case 5:
+                printThemAll(contacts_array, &currentAlloc);
                 break;
         }
     } while(choice != MENU_MAX);
 }
 
+/**
+ * Stampa a schermo tutti i contatti presenti nell'array dei contatti in ordine alfabetico.
+ *
+ * @param cont_arr Array dei contatti.
+ * @param curr_al Dimensione dell'array dei contatti.
+ */
+void printThemAll(Contatto *cont_arr, int *curr_al) {
+    int i;
+
+    printf("LISTA DEI CONTATTI:\n");
+
+    for(i = 0; i < *curr_al; i++)
+        printContact(&cont_arr[i]);
+}
+
+/**
+ * Gestisce la ricerca di uno o più contatti in base a diversi criteri.
+ *
+ * @param cont_arr Array dei contatti.
+ * @param curr_al Dimensione dell'array dei contatti.
+ */
+void searchContact(Contatto *cont_arr, int *curr_al) {
+    int choice, i;
+    char searchString[LENGTH + 1];
+
+    choice = menu("RICERCA PER\n"
+                  "1) Nome\n"
+                  "2) Cognome\n"
+                  "3) E-mail\n"
+                  "4) Telefono\n"
+                  "5) Categoria\n",
+                  SEARCH_MIN, SEARCH_MAX);
+
+    switch (choice) {
+        case 1:
+            printf("Inserisci il nome o parte di esso: ");
+            readLine(searchString, LENGTH + 1);
+
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (strstr(cont_arr[i].nome, searchString))
+                    printContact(&cont_arr[i]);
+            break;
+        case 2:
+            printf("Inserisci il cognome o parte di esso: ");
+            readLine(searchString, LENGTH + 1);
+
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (strstr(cont_arr[i].cognome, searchString))
+                    printContact(&cont_arr[i]);
+            break;
+        case 3:
+            printf("Inserisci l'e-mail o parte di essa: ");
+            readLine(searchString, LENGTH + 1);
+
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (strstr(cont_arr[i].email, searchString))
+                    printContact(&cont_arr[i]);
+            break;
+        case 4:
+            printf("Inserisci il numero di telefono o parte di esso: ");
+            readLine(searchString, LENGTH + 1);
+
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (strstr(cont_arr[i].telefono, searchString))
+                    printContact(&cont_arr[i]);
+            break;
+        case 5:
+            searchByCategory(cont_arr, curr_al);
+            break;
+    }
+}
+
+/**
+ * Gestisce la ricerca per categoria.
+ *
+ * @param cont_arr Array dei contatti.
+ * @param curr_al Dimensione dell'array dei contatti.
+ */
+void searchByCategory(Contatto *cont_arr, int *curr_al) {
+    int choice, i;
+
+    choice = menu("Per quale categoria desideri ricercare?\n"
+                  "1) Lavoro\n"
+                  "2) Famiglia\n"
+                  "3) Amici\n"
+                  "4) Altro\n",
+                  LAVORO + 1, ALTRO + 1);
+
+    choice--; // Decrementa la scelta per allinearla ai valori di enum TipologiaContatto
+
+    switch (choice) {
+        case LAVORO:
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (cont_arr[i].gruppo == LAVORO)
+                    printContact(&cont_arr[i]);
+            break;
+        case FAMIGLIA:
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (cont_arr[i].gruppo == FAMIGLIA)
+                    printContact(&cont_arr[i]);
+            break;
+        case AMICI:
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (cont_arr[i].gruppo == AMICI)
+                    printContact(&cont_arr[i]);
+            break;
+        case ALTRO:
+            printf("\nRECORD TROVATI:\n");
+            for(i = 0; i < *curr_al; i++)
+                if (cont_arr[i].gruppo == ALTRO)
+                    printContact(&cont_arr[i]);
+            break;
+    }
+}
+
 /*************
-void addContact(Contatto *cont_array, int *curr_al, int *upd_al) {
-    cont_array = allocate(curr_al, upd_al, cont_array, true);
-    newContact(&cont_array[*curr_al - 1]);
-    sortArray(cont_array, curr_al);
+void addContact(Contatto *cont_arr, int *curr_al, int *upd_al) {
+    cont_arr = allocate(curr_al, upd_al, cont_arr, true);
+    newContact(&cont_arr[*curr_al - 1]);
+    sortArray(cont_arr, curr_al);
 }
 ***********/
 
@@ -208,25 +341,23 @@ void concat(char *conc_here, char *p_str1, char *p_str2) {
 }
 
 /**
- * Visualizza il menu e chiede all'utente quale operazione effettuare.
+ * Visualizza un menu e chiede all'utente quale operazione effettuare.
  *
+ * @param str Contenuto del menu.
+ * @param min Valore minimo accettato.
+ * @param max Valore massimo accettato.
  * @return Scelta dell'utente.
  */
-int menu() {
+int menu(char str[], int min, int max) {
     int choice;
     _Bool isOk;
 
     do {
-        printf("RUBRICA TELEFONICA\n"
-               "1) Aggiungi\n"
-               "2) Modifica\n"
-               "3) Rimuovi\n"
-               "4) Ricerca\n"
-               "5) Esci\n");
+        printf("%s", str);
         scanf("%d", &choice);
         ignoreInputUntil('\n');
 
-        isOk = checkRange(choice, MENU_MIN, MENU_MAX, "Errore: scelta non valida.");
+        isOk = checkRange(choice, min, max, "Errore: scelta non valida.");
 
     } while(!isOk);
 
@@ -320,9 +451,9 @@ void readLine(char str[], int length) {
             ch = getchar();
             str[i] = ch;
             i++;
-            /* Se si arriva alla fine della stringa, ogni nuovo carattere digitato viene ignorato dalla funzione
-             * ignoreInputUntil e viene inserito il carattere '\n' nella variabile di buffer ch in maniera tale da
-             * causare l'uscita dal ciclo do-while. */
+        /* Se si arriva alla fine della stringa, ogni nuovo carattere digitato viene ignorato dalla funzione
+         * ignoreInputUntil e viene inserito il carattere '\n' nella variabile di buffer ch in maniera tale da
+         * causare l'uscita dal ciclo do-while. */
         } else {
             ignoreInputUntil('\n');
             ch = '\n';
