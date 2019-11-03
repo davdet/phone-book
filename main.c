@@ -21,9 +21,9 @@
 #define SRNAME_LABEL "Cognome"
 #define TEL_LABEL "Telefono"
 #define EMAIL_LABEL "E-mail"
-#define GROUP_LABEL "\nGruppo:\n1) Lavoro\n2) Famiglia\n3) Amici\n4) Altro\n"
+#define GROUP_LABEL "Gruppo:\n1) Lavoro\n2) Famiglia\n3) Amici\n4) Altro\n"
 
-typedef enum {LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
+typedef enum {NULLCAT, LAVORO, FAMIGLIA, AMICI, ALTRO} TipologiaContatto;
 typedef enum {NOME, COGNOME, TELEFONO, EMAIL} Controllo; // Enum utilizzata dalla funzione validator
 
 typedef struct {
@@ -154,7 +154,7 @@ void start() {
  * eliminati mentre il flag alert indica se tutti i campi dell'array sono stati eliminati o meno (true sì, false no).
  */
 Delete remFromArray(Contatto *cont_arr, int *curr_al) {
-    int i, j;
+    int i, j, catCounter;
     int choice, remIndx;
     char remStr[LENGTH + 1];
     Delete removed;
@@ -212,9 +212,16 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
                           "2) Famiglia\n"
                           "3) Amici\n"
                           "4) Altro\n",
-                          LAVORO + 1, ALTRO + 1);
+                          LAVORO, ALTRO);
 
-            choice--;
+            for(i = 0; i < *curr_al; i++) {
+                if (strcmp(remStr, cont_arr[i].cognome) == 0) {
+                    for (j = i; j < *curr_al; j++)
+                        cont_arr[j] = cont_arr[j + 1];
+                    removed.counter++;
+                    i--;
+                }
+            }
 
             for(i = 0; i < *curr_al; i++) {
                 if (cont_arr[i].gruppo == choice) {
@@ -234,8 +241,10 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al) {
             scanf("%d", &remIndx);
             ignoreInputUntil('\n');
 
+            remIndx--;
+
             /* Questo ciclo potrebbe essere ottimizzato o addirittura rimosso per evitare di dover scorrere tutto
-             * l'array. Per ora lo lascio così, poi se ho tempo per il refactoring lo faccio. */
+             * l'array. Per ora lo lascio così, poi se ho tempo per il refactoring lo sistemo. */
             for(i = 0; i < *curr_al; i++) {
                 if (i == remIndx) {
                     for (j = i; j < *curr_al; j++) {
@@ -266,8 +275,10 @@ void printThemAll(Contatto *cont_arr, int *curr_al) {
 
     printf("LISTA DEI CONTATTI:\n");
 
-    for(i = 0; i < *curr_al; i++)
+    for(i = 0; i < *curr_al; i++) {
+        printf("[%d]\n", i + 1);
         printContact(&cont_arr[i]);
+    }
 }
 
 /**
@@ -345,9 +356,7 @@ void searchByCategory(Contatto *cont_arr, int *curr_al) {
                   "2) Famiglia\n"
                   "3) Amici\n"
                   "4) Altro\n",
-                  LAVORO + 1, ALTRO + 1);
-
-    choice--; // Decrementa la scelta per allinearla ai valori di enum TipologiaContatto
+                  LAVORO, ALTRO);
 
     switch (choice) {
         case LAVORO:
@@ -741,7 +750,6 @@ TipologiaContatto getGroup(char label[]) {
         printf("%s", label);
         scanf("%d", &gruppo);
         ignoreInputUntil('\n');
-        gruppo--;
 
         isOk = checkRange(gruppo, LAVORO, ALTRO, "Errore, scelta non valida.");
     } while(!isOk);
