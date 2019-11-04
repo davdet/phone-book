@@ -1,7 +1,7 @@
 #include "phoneBook.h"
 
 Delete remFromArray(Contatto *cont_arr, int *curr_al, _Bool *is_empty);
-void printThemAll(Contatto *cont_arr, int *curr_al, _Bool isEmpty);
+void printThemAll(Contatto *cont_arr, int *curr_al);
 void searchContact(Contatto *cont_arr, int *curr_al);
 void searchByCategory(Contatto *cont_arr, int *curr_al);
 void sortArray(Contatto *cont_arr, int *curr_al);
@@ -20,7 +20,7 @@ TipologiaContatto getGroup(char label[]);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
 void printContact(Contatto *p_cont);
 void modifyContact(Contatto *p_cont);
-void modInArray(Contatto *cont_arr, int *curr_al, _Bool isEmpty);
+void modInArray(Contatto *cont_arr, int *curr_al);
 
 /**
  * Avvia il programma e gestisce la scelta effettuata nel menu.
@@ -52,23 +52,44 @@ void start() {
                 sortArray(contacts_array, &currentAlloc);
                 break;
             case 2:
-                modInArray(contacts_array, &currentAlloc, isEmpty);
+                if (!isEmpty)
+                    modInArray(contacts_array, &currentAlloc);
+                else {
+                    printf("Non è presente alcun contatto nella rubrica.");
+                    ignoreInputUntil('\n');
+                }
+
                 break;
             case 3:
-                removed = remFromArray(contacts_array, &currentAlloc, &isEmpty);
-                if (removed.alert) {
-                    free(contacts_array);
-                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+                if (!isEmpty) {
+                    removed = remFromArray(contacts_array, &currentAlloc, &isEmpty);
+                    if (removed.alert) {
+                        free(contacts_array);
+                        contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, false);
+                    } else {
+                        updateAlloc = currentAlloc - removed.counter;
+                        contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+                    }
                 } else {
-                    updateAlloc = currentAlloc - removed.counter;
-                    contacts_array = allocate(&currentAlloc, &updateAlloc, contacts_array, true);
+                    printf("Non è presente alcun contatto nella rubrica.");
+                    ignoreInputUntil('\n');
                 }
                 break;
             case 4:
-                searchContact(contacts_array, &currentAlloc);
+                if (!isEmpty) {
+                    searchContact(contacts_array, &currentAlloc);
+                } else {
+                    printf("Non è presente alcun contatto nella rubrica.");
+                    ignoreInputUntil('\n');
+                }
                 break;
             case 5:
-                printThemAll(contacts_array, &currentAlloc, isEmpty);
+                if (!isEmpty)
+                    printThemAll(contacts_array, &currentAlloc);
+                else {
+                    printf("Non è presente alcun contatto nella rubrica.");
+                    ignoreInputUntil('\n');
+                }
                 break;
         }
     } while(choice != MENU_MAX);
@@ -169,6 +190,7 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al, _Bool *is_empty) {
 
             return removed;
         case 4:
+            printThemAll(cont_arr, curr_al);
             printf("Inserisci l'indice del contatto che vuoi eliminare: ");
             scanf("%d", &remIndx);
             ignoreInputUntil('\n');
@@ -206,19 +228,14 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al, _Bool *is_empty) {
  * @param curr_al Dimensione dell'array dei contatti.
  * @param isEmpty Flag che indica se l'array è vuoto o meno.
  */
-void printThemAll(Contatto *cont_arr, int *curr_al, _Bool isEmpty) {
+void printThemAll(Contatto *cont_arr, int *curr_al) {
     int i;
 
-    if (!isEmpty) {
-        printf("LISTA DEI CONTATTI:\n");
+    printf("LISTA DEI CONTATTI:\n");
 
-        for (i = 0; i < *curr_al; i++) {
-            printf("[%d]\n", i + 1);
-            printContact(&cont_arr[i]);
-        }
-    } else {
-        printf("Non è presente alcun contatto.");
-        ignoreInputUntil('\n');
+    for (i = 0; i < *curr_al; i++) {
+        printf("[%d]\n", i + 1);
+        printContact(&cont_arr[i]);
     }
 }
 
@@ -811,7 +828,7 @@ void modifyContact(Contatto *p_cont) {
  * @param curr_al Lunghezza dell'array dei contatti.
  * @param isEmpty Flag che indica se l'array dei contatti è vuoto o meno.
  */
-void modInArray(Contatto *cont_arr, int *curr_al, _Bool isEmpty) {
+void modInArray(Contatto *cont_arr, int *curr_al) {
     char searchString[LENGTH + 1];
     int i = 0, j = 0;
     int choice;
@@ -820,46 +837,41 @@ void modInArray(Contatto *cont_arr, int *curr_al, _Bool isEmpty) {
     int *search_array; // Array dove verranno memorizzati gli indici visualizzati all'utente dei record trovati.
     _Bool isOk;
 
-    if (!isEmpty) {
-        index_array = (int *) malloc(size * sizeof(int));
-        checkIntAlloc(index_array);
-        search_array = (int *) malloc(size * sizeof(int));
-        checkIntAlloc(search_array);
+    index_array = (int *) malloc(size * sizeof(int));
+    checkIntAlloc(index_array);
+    search_array = (int *) malloc(size * sizeof(int));
+    checkIntAlloc(search_array);
 
-        printf("Inserisci parte del cognome del contatto da modificare: ");
-        readLine(searchString, LENGTH + 1);
+    printf("Inserisci parte del cognome del contatto da modificare: ");
+    readLine(searchString, LENGTH + 1);
 
-        printf("\nRECORD TROVATI:\n");
-        for (i = 0; i < *curr_al; i++)
-            if (strstr(cont_arr[i].cognome, searchString)) {
-                j++;
-                printf("[%d]\n", j);
-                printContact(&cont_arr[i]);
-                search_array = (int *) realloc(search_array, j + 1 * sizeof(int));
-                checkIntAlloc(search_array);
-                index_array = (int *) realloc(index_array, j + 1 * sizeof(int));
-                checkIntAlloc(index_array);
-                search_array[j - 1] = j;
-                index_array[j - 1] = i;
-            }
-
-        printf("Inserisci l'indice del contatto da modificare: ");
-        scanf("%d", &choice);
-        isOk = checkRange(choice, search_array[0], search_array[j - 1], "L'indice non identifica alcun contatto tra quelli trovati.\n");
-
-        if (isOk) {
-            for (i = 0; i < j; i++) {
-                if (search_array[i] == choice)
-                    target = index_array[i];
-            }
-
-            modifyContact(&cont_arr[target]);
+    printf("\nRECORD TROVATI:\n");
+    for (i = 0; i < *curr_al; i++)
+        if (strstr(cont_arr[i].cognome, searchString)) {
+            j++;
+            printf("[%d]\n", j);
+            printContact(&cont_arr[i]);
+            search_array = (int *) realloc(search_array, j + 1 * sizeof(int));
+            checkIntAlloc(search_array);
+            index_array = (int *) realloc(index_array, j + 1 * sizeof(int));
+            checkIntAlloc(index_array);
+            search_array[j - 1] = j;
+            index_array[j - 1] = i;
         }
 
-        free(search_array);
-        free(index_array);
-    } else {
-        printf("Non è presente alcun contatto.");
-        ignoreInputUntil('\n');
+    printf("Inserisci l'indice del contatto da modificare: ");
+    scanf("%d", &choice);
+    isOk = checkRange(choice, search_array[0], search_array[j - 1], "L'indice non identifica alcun contatto tra quelli trovati.\n");
+
+    if (isOk) {
+        for (i = 0; i < j; i++) {
+            if (search_array[i] == choice)
+                target = index_array[i];
+        }
+
+        modifyContact(&cont_arr[target]);
     }
+
+    free(search_array);
+    free(index_array);
 }
