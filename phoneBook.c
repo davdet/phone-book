@@ -836,7 +836,7 @@ void modInArray(Contatto *cont_arr, int *curr_al) {
     int size = 1, target;
     int *index_array; // Array dove verranno memorizzati gli indici dei record trovati.
     int *search_array; // Array dove verranno memorizzati gli indici visualizzati all'utente dei record trovati.
-    _Bool isOk;
+    _Bool isOk, found = false;
 
     index_array = (int *) malloc(size * sizeof(int));
     checkIntAlloc(index_array);
@@ -858,19 +858,26 @@ void modInArray(Contatto *cont_arr, int *curr_al) {
             checkIntAlloc(index_array);
             search_array[j - 1] = j;
             index_array[j - 1] = i;
+            found = true;
         }
 
-    printf("Inserisci l'indice del contatto da modificare: ");
-    scanf("%d", &choice);
-    isOk = checkRange(choice, search_array[0], search_array[j - 1], "L'indice non identifica alcun contatto tra quelli trovati.\n");
+    if (found) {
+        printf("Inserisci l'indice del contatto da modificare: ");
+        scanf("%d", &choice);
+        isOk = checkRange(choice, search_array[0], search_array[j - 1],
+                          "L'indice non identifica alcun contatto tra quelli trovati.\n");
 
-    if (isOk) {
-        for (i = 0; i < j; i++) {
-            if (search_array[i] == choice)
-                target = index_array[i];
+        if (isOk) {
+            for (i = 0; i < j; i++) {
+                if (search_array[i] == choice)
+                    target = index_array[i];
+            }
+
+            modifyContact(&cont_arr[target]);
         }
-
-        modifyContact(&cont_arr[target]);
+    } else {
+        printf("Nessun contatto trovato.");
+        ignoreInputUntil('\n');
     }
 
     free(search_array);
