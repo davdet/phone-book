@@ -52,8 +52,10 @@ void start() {
                 sortArray(contacts_array, &currentAlloc);
                 break;
             case 2:
-                if (!isEmpty)
+                if (!isEmpty) {
                     modInArray(contacts_array, &currentAlloc);
+                    sortArray(contacts_array, &currentAlloc);
+                }
                 else {
                     printf("Non è presente alcun contatto nella rubrica.");
                     ignoreInputUntil('\n');
@@ -226,7 +228,6 @@ Delete remFromArray(Contatto *cont_arr, int *curr_al, _Bool *is_empty) {
  *
  * @param cont_arr Array dei contatti.
  * @param curr_al Dimensione dell'array dei contatti.
- * @param isEmpty Flag che indica se l'array è vuoto o meno.
  */
 void printThemAll(Contatto *cont_arr, int *curr_al) {
     int i;
@@ -714,6 +715,7 @@ void getInput(char *in_str, int length, Controllo ctrl, char label[]) {
 /**
  * Acquisisce l'input relativo al gruppo di contatti.
  *
+ * @param label Stringa con le opzioni da visualizzare.
  * @return Gruppo di contatti.
  */
 TipologiaContatto getGroup(char label[]) {
@@ -826,7 +828,6 @@ void modifyContact(Contatto *p_cont) {
  *
  * @param cont_arr Array dei contatti.
  * @param curr_al Lunghezza dell'array dei contatti.
- * @param isEmpty Flag che indica se l'array dei contatti è vuoto o meno.
  */
 void modInArray(Contatto *cont_arr, int *curr_al) {
     char searchString[LENGTH + 1];
