@@ -9,6 +9,7 @@ void concat(char *conc_here, char *p_str1, char *p_str2);
 int menu(char str[], int min, int max);
 Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag);
 void checkAlloc(Contatto *p_alloc);
+void checkIntAlloc(int *p_alloc);
 void newContact(Contatto *p_new, _Bool *is_empty);
 void readLine(char str[], int length);
 void ignoreInputUntil(char endCh);
@@ -19,6 +20,7 @@ TipologiaContatto getGroup(char label[]);
 _Bool checkRange(int toCheck, int min, int max, char msg[MESSAGE]);
 void printContact(Contatto *p_cont);
 void modifyContact(Contatto *p_cont);
+void modInArray(Contatto *cont_arr, int *curr_al, _Bool isEmpty);
 
 /**
  * Avvia il programma e gestisce la scelta effettuata nel menu.
@@ -50,6 +52,7 @@ void start() {
                 sortArray(contacts_array, &currentAlloc);
                 break;
             case 2:
+                modInArray(contacts_array, &currentAlloc, isEmpty);
                 break;
             case 3:
                 removed = remFromArray(contacts_array, &currentAlloc, &isEmpty);
@@ -434,11 +437,25 @@ Contatto *allocate(int *curr_al, int *upd_al, Contatto *cont_arr, _Bool flag) {
 }
 
 /**
- * Controlla se l'allocazione di memoria è andata a buon fine. Se così non fosse termina il programma.
+ * Controlla se l'allocazione di memoria per un array di tipo Contatto è andata a buon fine. Se così non fosse
+ * termina il programma.
  *
  * @param p_alloc Puntatore alla nuova allocazione.
  */
 void checkAlloc(Contatto *p_alloc) {
+    if (p_alloc == NULL) {
+        printf("Errore: allocazione non riuscita.");
+        exit(-1);
+    }
+}
+
+/**
+ * Controlla se l'allocazione di memoria per un array di tipo int è andata a buon fine. Se così non fosse termina
+ * il programma.
+ *
+ * @param p_alloc Puntatore alla nuova allocazione.
+ */
+void checkIntAlloc(int *p_alloc) {
     if (p_alloc == NULL) {
         printf("Errore: allocazione non riuscita.");
         exit(-1);
@@ -753,6 +770,7 @@ void modifyContact(Contatto *p_cont) {
     _Bool isOk;
 
     do {
+        printf("\n");
         printContact(p_cont);
 
         printf("Quale campo vuoi modificare?\n"
@@ -783,5 +801,65 @@ void modifyContact(Contatto *p_cont) {
         case 5:
             p_cont->gruppo = getGroup(GROUP_LABEL);
             break;
+    }
+}
+
+/**
+ * Gestisce la modifica di un contatto nell'array cercandolo per il cognome.
+ *
+ * @param cont_arr Array dei contatti.
+ * @param curr_al Lunghezza dell'array dei contatti.
+ * @param isEmpty Flag che indica se l'array dei contatti è vuoto o meno.
+ */
+void modInArray(Contatto *cont_arr, int *curr_al, _Bool isEmpty) {
+    char searchString[LENGTH + 1];
+    int i = 0, j = 0;
+    int choice;
+    int size = 1, target;
+    int *index_array; // Array dove verranno memorizzati gli indici dei record trovati.
+    int *search_array; // Array dove verranno memorizzati gli indici visualizzati all'utente dei record trovati.
+    _Bool isOk;
+
+    if (!isEmpty) {
+        index_array = (int *) malloc(size * sizeof(int));
+        checkIntAlloc(index_array);
+        search_array = (int *) malloc(size * sizeof(int));
+        checkIntAlloc(search_array);
+
+        printf("Inserisci parte del cognome del contatto da modificare: ");
+        readLine(searchString, LENGTH + 1);
+
+        printf("\nRECORD TROVATI:\n");
+        for (i = 0; i < *curr_al; i++)
+            if (strstr(cont_arr[i].cognome, searchString)) {
+                j++;
+                printf("[%d]\n", j);
+                printContact(&cont_arr[i]);
+                search_array = (int *) realloc(search_array, j + 1 * sizeof(int));
+                checkIntAlloc(search_array);
+                index_array = (int *) realloc(index_array, j + 1 * sizeof(int));
+                checkIntAlloc(index_array);
+                search_array[j - 1] = j;
+                index_array[j - 1] = i;
+            }
+
+        printf("Inserisci l'indice del contatto da modificare: ");
+        scanf("%d", &choice);
+        isOk = checkRange(choice, search_array[0], search_array[j - 1], "L'indice non identifica alcun contatto tra quelli trovati.\n");
+
+        if (isOk) {
+            for (i = 0; i < j; i++) {
+                if (search_array[i] == choice)
+                    target = index_array[i];
+            }
+
+            modifyContact(&cont_arr[target]);
+        }
+
+        free(search_array);
+        free(index_array);
+    } else {
+        printf("Non è presente alcun contatto.");
+        ignoreInputUntil('\n');
     }
 }
