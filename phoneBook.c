@@ -249,6 +249,7 @@ void printThemAll(Contatto *cont_arr, int *curr_al) {
 void searchContact(Contatto *cont_arr, int *curr_al) {
     int choice, i;
     char searchString[LENGTH + 1];
+    _Bool found = false;
 
     choice = menu("\nRICERCA PER\n"
                   "1) Nome\n"
@@ -265,8 +266,16 @@ void searchContact(Contatto *cont_arr, int *curr_al) {
 
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (strstr(cont_arr[i].nome, searchString))
+                if (strstr(cont_arr[i].nome, searchString)) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case 2:
             printf("Inserisci il cognome o parte di esso: ");
@@ -274,8 +283,16 @@ void searchContact(Contatto *cont_arr, int *curr_al) {
 
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (strstr(cont_arr[i].cognome, searchString))
+                if (strstr(cont_arr[i].cognome, searchString)) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case 3:
             printf("Inserisci l'e-mail o parte di essa: ");
@@ -283,8 +300,16 @@ void searchContact(Contatto *cont_arr, int *curr_al) {
 
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (strstr(cont_arr[i].email, searchString))
+                if (strstr(cont_arr[i].email, searchString)) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case 4:
             printf("Inserisci il numero di telefono o parte di esso: ");
@@ -292,8 +317,16 @@ void searchContact(Contatto *cont_arr, int *curr_al) {
 
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (strstr(cont_arr[i].telefono, searchString))
+                if (strstr(cont_arr[i].telefono, searchString)) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case 5:
             searchByCategory(cont_arr, curr_al);
@@ -309,6 +342,7 @@ void searchContact(Contatto *cont_arr, int *curr_al) {
  */
 void searchByCategory(Contatto *cont_arr, int *curr_al) {
     int choice, i;
+    _Bool found = false;
 
     choice = menu("Per quale categoria desideri ricercare?\n"
                   "1) Lavoro\n"
@@ -321,26 +355,58 @@ void searchByCategory(Contatto *cont_arr, int *curr_al) {
         case LAVORO:
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (cont_arr[i].gruppo == LAVORO)
+                if (cont_arr[i].gruppo == LAVORO) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case FAMIGLIA:
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (cont_arr[i].gruppo == FAMIGLIA)
+                if (cont_arr[i].gruppo == FAMIGLIA) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case AMICI:
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (cont_arr[i].gruppo == AMICI)
+                if (cont_arr[i].gruppo == AMICI) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+
             break;
         case ALTRO:
             printf("\nRECORD TROVATI:\n");
             for(i = 0; i < *curr_al; i++)
-                if (cont_arr[i].gruppo == ALTRO)
+                if (cont_arr[i].gruppo == ALTRO) {
                     printContact(&cont_arr[i]);
+                    found = true;
+                }
+
+            if (!found) {
+                printf("Nessun contatto trovato.");
+                ignoreInputUntil('\n');
+            }
+            
             break;
     }
 }
