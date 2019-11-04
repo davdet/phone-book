@@ -7,6 +7,14 @@
 #IncludeRegexTransform: 
 
 /home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/main.c
+phoneBook.h
+/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.h
+
+/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.c
+phoneBook.h
+/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.h
+
+/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.h
 stdio.h
 -
 stdlib.h

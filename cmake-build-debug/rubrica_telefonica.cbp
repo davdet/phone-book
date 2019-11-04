@@ -81,6 +81,12 @@
 		<Unit filename="/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/main.c">
 			<Option target="rubrica_telefonica"/>
 		</Unit>
+		<Unit filename="/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.c">
+			<Option target="rubrica_telefonica"/>
+		</Unit>
+		<Unit filename="/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.h">
+			<Option target="rubrica_telefonica"/>
+		</Unit>
 		<Unit filename="/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/rubrica_telefonica.dir/main.c.o"
+  "CMakeFiles/rubrica_telefonica.dir/phoneBook.c.o"
   "rubrica_telefonica"
   "rubrica_telefonica.pdb"
 )

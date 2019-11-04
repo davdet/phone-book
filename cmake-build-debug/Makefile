@@ -150,6 +150,33 @@ main.c.s:
 	$(MAKE) -f CMakeFiles/rubrica_telefonica.dir/build.make CMakeFiles/rubrica_telefonica.dir/main.c.s
 .PHONY : main.c.s
 
+phoneBook.o: phoneBook.c.o
+
+.PHONY : phoneBook.o
+
+# target to build an object file
+phoneBook.c.o:
+	$(MAKE) -f CMakeFiles/rubrica_telefonica.dir/build.make CMakeFiles/rubrica_telefonica.dir/phoneBook.c.o
+.PHONY : phoneBook.c.o
+
+phoneBook.i: phoneBook.c.i
+
+.PHONY : phoneBook.i
+
+# target to preprocess a source file
+phoneBook.c.i:
+	$(MAKE) -f CMakeFiles/rubrica_telefonica.dir/build.make CMakeFiles/rubrica_telefonica.dir/phoneBook.c.i
+.PHONY : phoneBook.c.i
+
+phoneBook.s: phoneBook.c.s
+
+.PHONY : phoneBook.s
+
+# target to generate assembly for a file
+phoneBook.c.s:
+	$(MAKE) -f CMakeFiles/rubrica_telefonica.dir/build.make CMakeFiles/rubrica_telefonica.dir/phoneBook.c.s
+.PHONY : phoneBook.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -162,6 +189,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... phoneBook.o"
+	@echo "... phoneBook.i"
+	@echo "... phoneBook.s"
 .PHONY : help
 
 

@@ -5,6 +5,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
   "/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/main.c" "/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/cmake-build-debug/CMakeFiles/rubrica_telefonica.dir/main.c.o"
+  "/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/phoneBook.c" "/home/d3/Dropbox/docs/TNV/191030_progetto/phone-book/cmake-build-debug/CMakeFiles/rubrica_telefonica.dir/phoneBook.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
